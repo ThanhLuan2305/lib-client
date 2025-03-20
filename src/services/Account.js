@@ -3,7 +3,7 @@ import { handleApiError } from "../utils/apiErrorHandler";
 
 export const register = async (email, phoneNumber, password, fullName, birthDate) => {
 	try {
-		const response = await api.post("/auth/register", {
+		const response = await api.post("/account/register", {
 			email,
 			phoneNumber,
 			password,
@@ -13,6 +13,7 @@ export const register = async (email, phoneNumber, password, fullName, birthDate
 		return response.data.result;
 	} catch (error) {
 		handleApiError(error, "registering");
+		return error;
 	}
 };
 
@@ -22,14 +23,16 @@ export const verifyPhone = async (otp, phone) => {
 		return response.data;
 	} catch (error) {
 		handleApiError(error, "verifying phone");
+		return error;
 	}
 };
 
 export const verifyEmail = async (otp, email) => {
 	try {
-		const response = await api.get(`/account/verify-emal?otp=${otp}&email=${email}`);
+		const response = await api.get(`/account/verify-email?otp=${otp}&email=${email}`);
 		return response.data;
 	} catch (error) {
 		handleApiError(error, "verifying email");
+		return error;
 	}
 };

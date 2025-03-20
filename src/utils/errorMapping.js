@@ -47,14 +47,19 @@ const errorMessages = {
 	1044: "User has not verified email or phone number!",
 	1045: "Phone number already exists!",
 	503: "The system is under maintenance. Please try again later!",
-  };
-  
-  /**
-   * Returns the error message based on the error code from the API response
-   * @param {number} errorCode - Error code from API
-   * @returns {string} - User-friendly error message
-   */
-  export const getErrorMessage = (errorCode) => {
+};
+
+/**
+ * Returns the error message based on the error code from the API response
+ * @param {number} errorCode - Error code from API
+ * @returns {string} - User-friendly error message
+ */
+export const getErrorMessage = (errorCode) => {
 	return errorMessages[errorCode] || "An unknown error occurred!";
-  };
-  
+};
+
+export const getErrorDetails = (errorCode) => {
+	const code = errorCode;
+	const message = errorMessages[errorCode] || "An unknown error occurred!";
+	return { code, message };
+};

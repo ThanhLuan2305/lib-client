@@ -1,39 +1,49 @@
-import { api } from "./ApiFuntions";
+import { api, removeAuthHeader } from "./ApiFuntions";
 import { handleApiError } from "../utils/apiErrorHandler";
 import { notification } from "antd";
-import Cookies from "js-cookie";
 
 
 export const login = async (email, password) => {
 	try {
-	  const response = await api.post("/auth/login", { email, password });
+		const response = await api.post("/auth/login", { email, password });
+		const { accessToken } = response.data.result;
+
+		if (accessToken) {
+			api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+			console.log("Access token set:", accessToken);
+		}
+
+		notification.success({
+			message: "Logged in",
+			description: "You have successfully logged in.",
+		});
+
 		return response.data.result;
 	} catch (error) {
-		console.log(error);
-	  handleApiError(error, "logging in");
+		handleApiError(error, "logging in");
+		return error;
 	}
-  };
-  
-  export const logout = async () => {
+};
+
+
+export const logout = async () => {
 	try {
-	  const token = Cookies.get("accessToken");
-	  if (!token) throw new Error("No access token found");
-	  await api.post("/auth/logout", { token });
-	  notification.success({ message: "Logged out", description: "You have successfully logged out." });
+		await api.post("/auth/logout", {});
+		removeAuthHeader();
+		notification.success({ message: "Logged out", description: "You have successfully logged out." });
 	} catch (error) {
-	  handleApiError(error, "logging out");
+		handleApiError(error, "logging out");
+		return error;
 	}
-  };
-  
-  export const refreshToken = async () => {
+};
+
+export const refreshToken = async () => {
 	try {
-	  const refreshToken = Cookies.get("refreshToken");
-	  if (!refreshToken) throw new Error("No refresh token found");
-	  const response = await api.post("/auth/refresh", { token: refreshToken });
-	  return response.data.result;
+		const response = await api.post("/auth/refresh", {});
+		return response.data.result;
 	} catch (error) {
-	  handleApiError(error, "refreshing token");
+		handleApiError(error, "refreshing token");
+		return error;
 	}
-  };
-  
-  
+};
+

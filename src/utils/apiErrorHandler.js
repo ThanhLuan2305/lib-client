@@ -7,5 +7,5 @@ export const handleApiError = (error, action) => {
     message: `Error ${action}`,
     description: errorMessage,
   });
-  throw new Error(errorMessage);
+  throw error;
 };

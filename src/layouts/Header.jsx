@@ -1,29 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import PropTypes from "prop-types";
+import { Dropdown, Avatar } from "antd";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import "../styles/header.css";
+import "antd/dist/reset.css";
 
-const Header = ({ onSearch }) => {
+const Header = ({ onSearch, cartCount = 0 }) => {
   const [searchInput, setSearchInput] = useState("");
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    setSearchInput(e.target.value);
-  };
-
+  const handleInputChange = (e) => setSearchInput(e.target.value);
   const handleSearch = (e) => {
     e.preventDefault();
     onSearch(searchInput.trim());
   };
-
   const handleClear = () => {
     setSearchInput("");
     onSearch("");
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Menu items với icon và style đẹp hơn
+  const menuItems = [
+    {
+      key: "1",
+      label: (
+        <Link to="/profile" className="dropdown-item">
+          <FontAwesomeIcon icon={["fas", "user"]} className="menu-icon" />
+          Profile
+        </Link>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <Link to="/history" className="dropdown-item">
+          <FontAwesomeIcon icon={["fas", "history"]} className="menu-icon" />
+          History
+        </Link>
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <button onClick={handleLogout} className="dropdown-button">
+          <FontAwesomeIcon
+            icon={["fas", "sign-out-alt"]}
+            className="menu-icon"
+          />
+          Logout
+        </button>
+      ),
+    },
+  ];
+
   return (
-    <nav
-      className="navbar navbar-expand-lg"
-      style={{ backgroundColor: "#049DD9", marginBottom: "10px" }}
-    >
+    <nav className="navbar navbar-expand-lg header">
       <div className="container">
         <a className="navbar-brand fw-bold text-white" href="/">
           <FontAwesomeIcon icon={["fas", "book"]} className="me-2" />
@@ -62,18 +101,31 @@ const Header = ({ onSearch }) => {
             </button>
           </form>
 
-          <div className="d-flex">
-            <button href="#" className="btn btn-outline-light me-2">
+          <div className="d-flex align-items-center">
+            <button className="btn btn-outline-light me-2 cart-button position-relative">
               <FontAwesomeIcon
                 icon={["fas", "shopping-cart"]}
                 className="me-1"
               />
               Cart
+              {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </button>
-            <button href="#" className="btn btn-light">
-              <FontAwesomeIcon icon={["fas", "user"]} className="me-1" />
-              Profile
-            </button>
+
+            {user ? (
+              <Dropdown
+                menu={{ items: menuItems }}
+                trigger={["click"]}
+                placement="bottomRight"
+              >
+                <Avatar className="user-avatar" size={40}>
+                  {user.fullName ? user.fullName[0] : "U"}
+                </Avatar>
+              </Dropdown>
+            ) : (
+              <Link to="/login" className="btn btn-light">
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -83,6 +135,7 @@ const Header = ({ onSearch }) => {
 
 Header.propTypes = {
   onSearch: PropTypes.func.isRequired,
+  cartCount: PropTypes.number,
 };
 
 export default Header;

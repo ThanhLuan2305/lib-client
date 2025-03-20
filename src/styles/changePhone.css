@@ -1,0 +1,33 @@
+/* Style cho tiêu đề */
+.profile-title {
+	color: #1e3c72 !important;
+  }
+  
+  /* Style cho form */
+  .profile-form {
+	max-width: 400px;
+  }
+  
+  .profile-form .ant-form-item-label > label {
+	font-weight: 600;
+	color: #049dd9;
+  }
+  
+  .profile-form .ant-input {
+	border-radius: 8px !important;
+	border: 1px solid #d1d5db !important;
+	padding: 10px !important;
+  }
+  
+  .profile-form .ant-btn-primary {
+	background: #049dd9 !important;
+	border: none !important;
+	border-radius: 8px !important;
+	padding: 10px !important;
+	font-weight: 600;
+	transition: background 0.3s ease;
+  }
+  
+  .profile-form .ant-btn-primary:hover {
+	background: #2a5298 !important;
+  }

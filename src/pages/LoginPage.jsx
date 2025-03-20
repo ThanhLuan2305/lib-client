@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Input, Button, Form, notification } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { login } from "../services/Authentication";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { AuthContext } from "../context/AuthContext";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -17,20 +19,30 @@ const LoginPage = () => {
         message: "Login Successful",
         description: "You have successfully logged in!",
       });
+      navigate("/");
     } catch (error) {
-      setError(error.message);
+      console.log("check loi trong login page: ", error.code);
+
+      if (error.code === 1038) {
+        navigate("/change-password-after-reset");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center bg-light bg-light pt-5">
+    <div className="container d-flex justify-content-center align-items-center bg-light pt-5">
       <div
         className="card shadow-lg p-4 rounded-4"
         style={{ maxWidth: "380px", width: "100%", height: "55vh" }}
       >
         <h2 className="text-center mb-3 mt-4 fw-bold text-primary">Sign In</h2>
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
         <Form layout="vertical" onFinish={onFinish}>
           <Form.Item
             label={<span className="fw-semibold">Email</span>}
@@ -65,7 +77,7 @@ const LoginPage = () => {
             />
           </Form.Item>
 
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="text-start mb-3">
             <Link
               to="/forgot-password"
               className="text-decoration-none text-primary fw-semibold"
@@ -80,10 +92,19 @@ const LoginPage = () => {
             block
             loading={loading}
             size="large"
-            className="rounded-3 mt-4"
+            className="rounded-3 mt-3"
           >
             Login
           </Button>
+          <p className="text-center mt-3">
+            You don’t have an account yet, please{" "}
+            <Link
+              to="/register"
+              className="text-decoration-none text-primary fw-semibold"
+            >
+              Sign Up
+            </Link>
+          </p>
         </Form>
       </div>
     </div>
