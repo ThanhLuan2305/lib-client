@@ -1,18 +1,18 @@
 .header {
 	background-color: #049dd9;
 	margin-bottom: 10px;
-  }
-  
-  .ant-dropdown-menu {
+}
+
+.ant-dropdown-menu {
 	border-radius: 8px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	min-width: 140px;
 	background-color: #fff;
 	padding: 8px 0;
 	border: 1px solid #e8e8e8;
-  }
-  
-  .dropdown-item {
+}
+
+.dropdown-item {
 	display: flex;
 	align-items: center;
 	padding: 8px 16px;
@@ -20,14 +20,14 @@
 	color: #333;
 	text-decoration: none;
 	transition: all 0.3s ease;
-  }
-  
-  .dropdown-item:hover {
+}
+
+.dropdown-item:hover {
 	background-color: #f0faff;
 	color: #049dd9;
-  }
-  
-  .dropdown-button {
+}
+
+.dropdown-button {
 	width: 100%;
 	display: flex;
 	align-items: center;
@@ -39,37 +39,37 @@
 	text-align: left;
 	transition: all 0.3s ease;
 	cursor: pointer;
-  }
-  
-  .dropdown-button:hover {
+}
+
+.dropdown-button:hover {
 	background-color: #fff0f0;
 	color: #ff4d4f;
-  }
-  
-  .menu-icon {
+}
+
+.menu-icon {
 	margin-right: 10px;
 	width: 16px;
 	text-align: center;
-  }
-  
-  .user-avatar {
+}
+
+.user-avatar {
 	background-color: #fff;
 	color: #049dd9;
 	cursor: pointer;
 	transition: all 0.3s;
 	border: 2px solid #fff;
-  }
-  
-  .user-avatar:hover {
+}
+
+.user-avatar:hover {
 	border-color: #049dd9;
 	box-shadow: 0 0 8px rgba(4, 157, 217, 0.3);
-  }
-  
-  .cart-button {
+}
+
+.cart-button {
 	padding: 6px 12px;
-  }
-  
-  .cart-badge {
+}
+
+.cart-badge {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -83,4 +83,4 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-  }
+}

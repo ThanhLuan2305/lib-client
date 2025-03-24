@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Menu, Avatar, Typography, Card, notification } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  PhoneOutlined,
+} from "@ant-design/icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "antd/dist/reset.css";
 import "../styles/profilePage.css";
-import { getInfo } from "../services/User";
+import { getInfo } from "../services/Authentication";
 import UserInfo from "../components/UserInfo";
 import ChangePassword from "../components/ChangePassword";
 import ChangeEmail from "../components/ChangeEmail";
@@ -20,11 +25,17 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const data = await getInfo();
-        setUserInfo(data);
+        // Lấy dữ liệu từ localStorage
+        const profile = localStorage.getItem("userProfile");
+        let parsedProfile = null;
+        if (profile) {
+          parsedProfile = JSON.parse(profile);
+          setUserInfo(parsedProfile);
+        }
+        
       } catch (error) {
         notification.error({
-          message: "Error",
+          message: error.message || "Error",
           description: "Failed to load user information.",
         });
       }
@@ -34,7 +45,11 @@ const ProfilePage = () => {
 
   const menuItems = [
     { key: "info", icon: <UserOutlined />, label: "Info" },
-    { key: "change-password", icon: <LockOutlined />, label: "Change Password" },
+    {
+      key: "change-password",
+      icon: <LockOutlined />,
+      label: "Change Password",
+    },
     { key: "change-email", icon: <MailOutlined />, label: "Change Email" },
     { key: "change-phone", icon: <PhoneOutlined />, label: "Change Phone" },
   ];

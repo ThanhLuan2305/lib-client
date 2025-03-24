@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Input, Button, Form, notification } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,18 +9,31 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login, role, loading: authLoading } = useContext(AuthContext);
+
+  const renderIcon = (visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />);
+
+  useEffect(() => {
+    if (role && !authLoading) {
+      if (role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [role, authLoading, navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
+    setError("");
     try {
       await login(values.email, values.password);
       notification.success({
         message: "Login Successful",
         description: "You have successfully logged in!",
       });
-      navigate("/");
     } catch (error) {
+      setError(error.response?.data?.message || error.message);
       console.log("check loi trong login page: ", error.code);
 
       if (error.code === 1038) {
@@ -32,10 +45,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center bg-light pt-5">
+    <div className="container d-flex justify-content-center align-items-center bg-light pt-4">
       <div
         className="card shadow-lg p-4 rounded-4"
-        style={{ maxWidth: "380px", width: "100%", height: "55vh" }}
+        style={{ maxWidth: "380px", width: "100%", height: "65vh" }}
       >
         <h2 className="text-center mb-3 mt-4 fw-bold text-primary">Sign In</h2>
         {error && (
@@ -71,9 +84,7 @@ const LoginPage = () => {
             <Input.Password
               placeholder="Enter your password"
               size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
+              iconRender={renderIcon}
             />
           </Form.Item>
 

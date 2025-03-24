@@ -1,9 +1,7 @@
-/* Style cho tiêu đề */
 .profile-title {
 	color: #1e3c72 !important;
 }
 
-/* Style cho form */
 .profile-form {
 	max-width: 400px;
 }

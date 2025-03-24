@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom"; // Thêm useLocation
 import HomePage from "./pages/HomePage";
 import BookDetailPage from "./pages/BookDetailPage";
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
+import AdminLayout from "./layouts/AdminLayout.jsx";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyOTPPage from "./pages/VerifyOTPPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ChangePasswordAfterResetPage from "./pages/ChangePasswordAfterResetPage";
 import ProfilePage from "./pages/ProfilePage";
+import HistoryPage from "./pages/HistoryPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminBookPage from "./pages/admin/AdminBookPage";
+import MaintenanceModePage from "./pages/admin/MaintenanceModePage";
+import ActivityLogPage from "./pages/admin/ActivityLogPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -19,11 +26,39 @@ function App() {
 
   return (
     <AuthProvider>
-      <Header onSearch={setSearchTerm} />
-      <main className="container">
-        <Routes>
+      <Routes>
+        <Route
+          element={
+            <>
+              <Header onSearch={setSearchTerm} />
+              <main className="container">
+                <Outlet />
+              </main>
+              <Footer />
+            </>
+          }
+        >
+          {/* Các route cho USER */}
           <Route path="/" element={<HomePage searchTerm={searchTerm} />} />
           <Route path="/book/:id" element={<BookDetailPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Các route không yêu cầu đăng nhập */}
           <Route
             path="/login"
             element={
@@ -64,12 +99,53 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/profile" element={<ProfilePage />} />
-        </Routes>
-      </main>
-      <Footer />
+        </Route>
+
+        {/* Các route cho ADMIN (sử dụng AdminLayout, không có Header, <main>, và Footer) */}
+        <Route element={<AdminLayout />}>
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/books"
+            element={
+              <ProtectedRoute>
+                <AdminBookPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/activity-log"
+            element={
+              <ProtectedRoute>
+                <ActivityLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/maintenance-mode"
+            element={
+              <ProtectedRoute>
+                <MaintenanceModePage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
     </AuthProvider>
   );
 }
-
 export default App;

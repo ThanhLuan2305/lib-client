@@ -1,21 +1,19 @@
-/* Style cho tiêu đề */
 .profile-title {
 	color: #049dd9 !important;
-  }
-  
-  /* Style cho mục Info */
-  .info-section {
+}
+
+.info-section {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
 	gap: 15px;
 	max-width: 600px;
 	margin-top: 20px;
-  }
-  
-  .info-section .ant-typography-strong {
+}
+
+.info-section .ant-typography-strong {
 	color: #049dd9;
-  }
-  
-  .info-section .ant-typography {
+}
+
+.info-section .ant-typography {
 	color: #4b5e8e;
-  }
+}

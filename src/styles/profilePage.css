@@ -1,24 +1,20 @@
-/* Layout chính */
 .profile-layout {
 	background: #f0f2f5;
 	min-height: 75vh;
 	margin-top: 1.5rem;
 }
 
-/* Gradient background cho sidebar */
 .profile-sider {
 	background: linear-gradient(180deg, #049dd9 0%, #2a5298 100%) !important;
 	color: #fff;
 	box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Style cho header của sidebar (avatar và username) */
 .profile-header {
 	text-align: center;
 	margin: 20px 0;
 }
 
-/* Style cho avatar */
 .profile-avatar {
 	border: 3px solid #fff;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -29,14 +25,12 @@
 	transform: scale(1.05);
 }
 
-/* Style cho tên người dùng */
 .profile-username {
 	color: #fff !important;
 	font-weight: 600;
 	margin-top: 10px !important;
 }
 
-/* Style cho menu */
 .profile-menu .ant-menu {
 	background: transparent !important;
 	border-right: none !important;
@@ -62,25 +56,21 @@
 	font-weight: 600;
 }
 
-/* Style cho nội dung bên phải */
 .profile-content {
 	padding: 20px;
 	margin-left: 100px;
 }
 
-/* Style cho card */
 .profile-content .ant-card {
 	border-radius: 15px !important;
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 	padding: 20px;
 }
 
-/* Style cho tiêu đề */
 .profile-title {
 	color: #049dd9 !important;
 }
 
-/* Style cho mục Info */
 .info-section {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
@@ -97,7 +87,6 @@
 	color: #4b5e8e;
 }
 
-/* Style cho form */
 .profile-form {
 	max-width: 400px;
 }

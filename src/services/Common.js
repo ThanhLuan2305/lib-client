@@ -43,9 +43,20 @@ export const filterBook = async (page = 1, limit = 6, filters = {}) => {
     size: limit,
     sort: "title,asc",
   });
+  console.log("🚀 ~ file: Common.js ~ line 90 ~ filterBook ~ queryParams", queryParams);
 
+  // Duyệt qua từng field trong filters
   Object.entries(filters).forEach(([key, value]) => {
-    if (value) queryParams.append(`${key}.contains`, value);
+    if (value) {
+      if (Array.isArray(value) && value.length > 0) {
+        value.forEach((val) => {
+          queryParams.append(`${key}.contains`, val);
+        });
+      }
+      else if (!Array.isArray(value)) {
+        queryParams.append(`${key}.contains`, value);
+      }
+    }
   });
 
   try {

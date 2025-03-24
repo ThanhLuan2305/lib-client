@@ -64,6 +64,16 @@ const VerifyOTPPage = () => {
     }
   };
 
+  const getStatus = (currentStep) => {
+    if (currentStep === 0) {
+      return "wait";
+    }
+    if (currentStep === 1) {
+      return "process";
+    }
+    return "finish";
+  };
+
   const steps = [
     {
       title: "Email",
@@ -72,7 +82,7 @@ const VerifyOTPPage = () => {
     },
     {
       title: "Phone",
-      status: currentStep === 0 ? "wait" : currentStep === 1 ? "process" : "finish",
+      status: getStatus(currentStep),
       icon: <SolutionOutlined />,
     },
     {
@@ -87,7 +97,9 @@ const VerifyOTPPage = () => {
       <div className="verify-card">
         <div className="text-center mb-4">
           <h2 className="verify-title">Account Verification</h2>
-          <p className="text-muted">Complete the steps to verify your account</p>
+          <p className="text-muted">
+            Complete the steps to verify your account
+          </p>
         </div>
 
         <Steps items={steps} className="mb-5" />

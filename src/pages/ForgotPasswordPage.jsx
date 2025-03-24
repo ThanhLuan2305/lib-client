@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Form, Input, Button, notification, Checkbox, Steps } from "antd";
-import { MailOutlined, SolutionOutlined, SmileOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  SolutionOutlined,
+  SmileOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -22,8 +26,11 @@ const ForgotPasswordPage = () => {
     try {
       setContactInfo(values.contactInfo);
       setIsPhone(values.isPhone || false);
-      const rs = await requestPasswordReset(values.contactInfo, values.isPhone || false);
-	  console.log(rs);
+      const rs = await requestPasswordReset(
+        values.contactInfo,
+        values.isPhone || false
+      );
+      console.log(rs);
       notification.success({
         message: "OTP Sent",
         description: "An OTP has been sent to your contact info.",
@@ -54,7 +61,15 @@ const ForgotPasswordPage = () => {
       setLoading(false);
     }
   };
-
+  const getStatus = (currentStep) => {
+    if (currentStep === 0) {
+      return "wait";
+    }
+    if (currentStep === 1) {
+      return "process";
+    }
+    return "finish";
+  };
   const steps = [
     {
       title: "Request OTP",
@@ -63,7 +78,7 @@ const ForgotPasswordPage = () => {
     },
     {
       title: "Verify OTP",
-      status: currentStep === 0 ? "wait" : currentStep === 1 ? "process" : "finish",
+      status: getStatus(currentStep),
       icon: <SolutionOutlined />,
     },
     {
@@ -78,7 +93,9 @@ const ForgotPasswordPage = () => {
       <div className="verify-card">
         <div className="text-center mb-4">
           <h2 className="verify-title">Reset Password</h2>
-          <p className="text-muted">Complete the steps to reset your password</p>
+          <p className="text-muted">
+            Complete the steps to reset your password
+          </p>
         </div>
 
         <Steps items={steps} className="mb-5" />
@@ -86,10 +103,15 @@ const ForgotPasswordPage = () => {
         {currentStep === 0 && (
           <Form layout="vertical" onFinish={handleRequestOtp}>
             <Form.Item
-              label={<span className="input-label">Contact Info (Email/Phone)</span>}
+              label={
+                <span className="input-label">Contact Info (Email/Phone)</span>
+              }
               name="contactInfo"
               rules={[
-                { required: true, message: "Please enter your email or phone number" },
+                {
+                  required: true,
+                  message: "Please enter your email or phone number",
+                },
               ]}
             >
               <Input
@@ -100,11 +122,13 @@ const ForgotPasswordPage = () => {
             </Form.Item>
 
             <Form.Item
-              label={<span className="input-label">Is this a phone number?</span>}
+              label={
+                <span className="input-label">Is this a phone number?</span>
+              }
               name="isPhone"
               valuePropName="checked"
             >
-              <Checkbox/>
+              <Checkbox />
             </Form.Item>
 
             <Button
@@ -166,7 +190,8 @@ const ForgotPasswordPage = () => {
               Your new password is: <strong>{newPassword}</strong>
             </p>
             <p className="text-muted">
-              Please use this password to log in. You will be redirected to the login page in 2 minutes.
+              Please use this password to log in. You will be redirected to the
+              login page in 2 minutes.
             </p>
             <Button
               type="primary"

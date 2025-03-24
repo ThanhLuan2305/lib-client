@@ -1,10 +1,10 @@
 .book-card-container {
 	margin: 0.5rem;
 	width: 100%;
-	max-width: 450px; /* Giới hạn chiều rộng tối đa */
-	box-shadow: 
-	  0 4px 6px rgba(0, 0, 0, 0.1),
-	  0 10px 15px rgba(0, 0, 0, 0.15);
+	max-width: 450px;
+	box-shadow:
+		0 4px 6px rgba(0, 0, 0, 0.1),
+		0 10px 15px rgba(0, 0, 0, 0.15);
 	border-radius: 12px;
 	padding: 15px;
 	background: linear-gradient(145deg, #ffffff, #e6e6e6);
@@ -12,24 +12,21 @@
 	transform-style: preserve-3d;
 }
 
-/* Hover effect */
 .book-card-container:hover {
 	transform: translateY(-5px) scale(1.02);
-	box-shadow: 
-	  0 6px 10px rgba(0, 0, 0, 0.15),  
-	  0 15px 20px rgba(0, 0, 0, 0.2); 
+	box-shadow:
+		0 6px 10px rgba(0, 0, 0, 0.15),
+		0 15px 20px rgba(0, 0, 0, 0.2);
 	background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
 }
 
-/* Active effect */
 .book-card-container:active {
 	transform: translateY(2px) scale(0.98);
-	box-shadow: 
-	  0 2px 5px rgba(0, 0, 0, 0.1),  
-	  0 5px 10px rgba(0, 0, 0, 0.15); 
+	box-shadow:
+		0 2px 5px rgba(0, 0, 0, 0.1),
+		0 5px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Responsive Design */
 @media (min-width: 1200px) {
 	.book-card-container {
 		width: 31%;

@@ -7,7 +7,7 @@ import { AuthContext } from "../context/AuthContext";
 import "../styles/header.css";
 import "antd/dist/reset.css";
 
-const Header = ({ onSearch, cartCount = 0 }) => {
+const Header = ({ onSearch }) => {
   const [searchInput, setSearchInput] = useState("");
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -102,14 +102,6 @@ const Header = ({ onSearch, cartCount = 0 }) => {
           </form>
 
           <div className="d-flex align-items-center">
-            <button className="btn btn-outline-light me-2 cart-button position-relative">
-              <FontAwesomeIcon
-                icon={["fas", "shopping-cart"]}
-                className="me-1"
-              />
-              Cart
-              {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
-            </button>
 
             {user ? (
               <Dropdown
@@ -135,7 +127,6 @@ const Header = ({ onSearch, cartCount = 0 }) => {
 
 Header.propTypes = {
   onSearch: PropTypes.func.isRequired,
-  cartCount: PropTypes.number,
 };
 
 export default Header;

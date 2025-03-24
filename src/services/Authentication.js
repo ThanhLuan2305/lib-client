@@ -10,6 +10,7 @@ export const login = async (email, password) => {
 
 		if (accessToken) {
 			api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+			localStorage.setItem("accessToken", accessToken);
 			console.log("Access token set:", accessToken);
 		}
 
@@ -47,3 +48,12 @@ export const refreshToken = async () => {
 	}
 };
 
+export const getInfo = async () => {
+	try {
+		const response = await api.get(`/auth/info`);
+		return response.data.result;
+	} catch (error) {
+		handleApiError(error, "get info user");
+		return error;
+	}
+};

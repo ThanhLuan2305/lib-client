@@ -8,10 +8,10 @@ const { Option } = Select;
 
 const BookFilter = ({ setFilters }) => {
   const [filterValues, setFilterValues] = useState({
-    title: undefined,
-    author: undefined,
-    typeName: undefined,
-    publisher: undefined,
+    title: [],
+    author: [],
+    typeName: [],
+    publisher: [],
   });
 
   const handleFilterChange = (field, value) => {
@@ -24,10 +24,10 @@ const BookFilter = ({ setFilters }) => {
 
   const clearFilters = () => {
     setFilterValues({
-      title: undefined,
-      author: undefined,
-      typeName: undefined,
-      publisher: undefined,
+      title: [],
+      author: [],
+      typeName: [],
+      publisher: [],
     });
     setFilters({});
   };
@@ -63,6 +63,7 @@ const BookFilter = ({ setFilters }) => {
               "Brian W. Kernighan",
               "Jared Diamond",
               "George Orwell",
+              "Dennis M.RitChie",
             ],
           },
           {
@@ -103,6 +104,13 @@ const BookFilter = ({ setFilters }) => {
               onChange={(value) => handleFilterChange(field, value)}
               value={filterValues[field]}
               allowClear
+              mode="multiple"
+              maxTagCount="responsive"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().includes(input.toLowerCase())
+              }
             >
               {options.map((option) => (
                 <Option key={option} value={option}>

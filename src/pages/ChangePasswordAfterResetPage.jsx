@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Form, Input, Button, notification } from "antd";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "antd/dist/reset.css";
 import { changePasswordAfterReset } from "../services/Password";
+import IconRenderer from "../components/IconRenderer";
 
 const ChangePasswordAfterResetPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const renderIcon = useCallback(
+    (visible) => <IconRenderer visible={visible} />,
+    []
+  );
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -62,9 +67,7 @@ const ChangePasswordAfterResetPage = () => {
             <Input.Password
               placeholder="Enter your old password"
               size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
+              iconRender={renderIcon}
             />
           </Form.Item>
 
@@ -84,9 +87,7 @@ const ChangePasswordAfterResetPage = () => {
             <Input.Password
               placeholder="Enter your new password"
               size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
+              iconRender={renderIcon}
             />
           </Form.Item>
 
@@ -111,9 +112,7 @@ const ChangePasswordAfterResetPage = () => {
             <Input.Password
               placeholder="Confirm your new password"
               size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
+              iconRender={renderIcon}
             />
           </Form.Item>
 

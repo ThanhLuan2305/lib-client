@@ -4,9 +4,9 @@
 	align-items: center;
 	justify-content: center;
 	padding: 1rem;
-  }
-  
-  .book-detail-card {
+}
+
+.book-detail-card {
 	width: 100%;
 	max-width: 1000px;
 	background: rgba(255, 255, 255, 0.15);
@@ -14,34 +14,35 @@
 	border-radius: 15px;
 	padding: 3rem;
 	box-shadow: 1px 15px 40px 3px rgba(0, 0, 0, 0.3);
-  }
-  
-  .book-cover img {
+}
+
+.book-cover img {
 	width: 100%;
 	max-height: 580px;
 	object-fit: cover;
 	border-radius: 15px;
 	box-shadow: 1px 5px 10px 3px rgba(0, 0, 0, 0.3);
-  }
-  
-  .book-info h2 {
+}
+
+.book-info h2 {
 	font-size: 2.2rem;
 	font-weight: bold;
 	color: #222;
-  }
-  
-  .book-info p {
-	font-size: 1.3rem; 
+}
+
+.book-info p {
+	font-size: 1.3rem;
 	margin: 10px 0;
-  }
-  
-  .availability {
+}
+
+.availability {
 	font-size: 1.5rem;
 	font-weight: bold;
-  }
-  
-  .back-button {
-	background-color: #1890ff !important; /* Màu xanh Ant Design */
+}
+
+.back-button {
+	background-color: #1890ff !important;
+	/* Màu xanh Ant Design */
 	border: none;
 	font-size: 1.2rem;
 	border-radius: 8px;
@@ -49,10 +50,25 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-  }
-  
-  .back-button:hover {
+}
+
+.back-button:hover {
 	background-color: #40a9ff !important;
-  }
-  
-  
+}
+
+.book-info .ant-btn-primary {
+	background: #049dd9 !important;
+	border: none !important;
+	border-radius: 5px !important;
+	font-weight: 600;
+	transition: background 0.3s ease;
+}
+
+.book-info .ant-btn-primary:hover {
+	background: #0585b8 !important;
+}
+
+.book-info .ant-btn-primary:disabled {
+	background: #d9d9d9 !important;
+	color: #fff !important;
+}

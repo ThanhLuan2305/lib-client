@@ -1,0 +1,33 @@
+.admin-sidebar {
+	width: 200px;
+	background-color: #001529;
+	height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+  }
+
+  .admin-sidebar .admin-sidebar__logo {
+	text-align: center;
+	margin-top: 20px;
+	color: #fff;
+  }
+  
+  .admin-sidebar .ant-menu {
+	background-color: transparent;
+  }
+  
+  .admin-sidebar .ant-menu-item {
+	color: #fff;
+  }
+  
+  .admin-sidebar .ant-menu-item:hover,
+  .admin-sidebar .ant-menu-item-selected {
+	background-color: #1890ff !important;
+	color: #fff !important;
+  }
+  
+  .admin-sidebar .ant-menu-item a {
+	color: inherit;
+	text-decoration: none;
+  }

@@ -1,16 +1,6 @@
 import { api } from "./ApiFuntions";
 import { handleApiError } from "../utils/apiErrorHandler";
-
-export const getInfo = async () => {
-  try {
-    const response = await api.get(`/user/users/info`);
-    return response.data.result;
-  } catch (error) {
-    handleApiError(error, "get info user");
-    return error;
-  }
-};
-
+// Thay đổi mật khẩu
 export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
   try {
     const response = await api.put(
@@ -33,6 +23,7 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
   }
 };
 
+// Thay đổi email (gửi OTP)
 export const changeEmail = async (oldEmail, newEmail) => {
   try {
     const response = await api.put(
@@ -54,6 +45,7 @@ export const changeEmail = async (oldEmail, newEmail) => {
   }
 };
 
+// Xác thực OTP để thay đổi email
 export const verifyChangeEmail = async (oldEmail, newEmail, otp) => {
   try {
     const response = await api.put(
@@ -76,6 +68,7 @@ export const verifyChangeEmail = async (oldEmail, newEmail, otp) => {
   }
 };
 
+// Thay đổi số điện thoại (gửi OTP)
 export const changePhone = async (oldPhoneNumber, newPhoneNumber) => {
   try {
     const response = await api.put(
@@ -97,6 +90,7 @@ export const changePhone = async (oldPhoneNumber, newPhoneNumber) => {
   }
 };
 
+// Xác thực OTP để thay đổi số điện thoại
 export const verifyChangePhone = async (oldPhoneNumber, newPhoneNumber, otp) => {
   try {
     const response = await api.put(
@@ -116,5 +110,59 @@ export const verifyChangePhone = async (oldPhoneNumber, newPhoneNumber, otp) => 
   } catch (error) {
     handleApiError(error, "verify change phone");
     return error;
+  }
+};
+
+// Mượn sách
+export const borrowBook = async (bookId) => {
+  try {
+    const response = await api.post(`/user/books/borrow/${bookId}`);
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "borrow book");
+    throw error.response?.data || { message: "Failed to borrow book" };
+  }
+};
+
+// Lấy danh sách sách đang mượn
+export const getBorrowedBooks = async (page = 0, size = 10) => {
+  try {
+    const response = await api.get(`/user/books/books-borrow`, {
+      params: {
+        page,
+        size,
+      },
+    });
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "get borrowed books");
+    throw error.response?.data || { message: "Failed to get borrowed books" };
+  }
+};
+
+// Trả sách
+export const returnBook = async (bookId) => {
+  try {
+    const response = await api.post(`/user/books/return/${bookId}`);
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "return book");
+    throw error.response?.data || { message: "Failed to return book" };
+  }
+};
+
+// Lấy danh sách sách đã trả
+export const getReturnedBooks = async (page = 0, size = 10) => {
+  try {
+    const response = await api.get(`/user/books/books-return`, {
+      params: {
+        page,
+        size,
+      },
+    });
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "get returned books");
+    throw error.response?.data || { message: "Failed to get returned books" };
   }
 };

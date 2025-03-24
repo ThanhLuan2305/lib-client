@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchBookById } from "../services/Common";
-import { Button } from "antd";
+import { borrowBook } from "../services/User"; // Import hàm borrowBook
+import { Button, notification } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import "../styles/bookDetail.css";
 
@@ -27,6 +28,28 @@ const BookDetailPage = () => {
     };
     getBook();
   }, [id]);
+
+  const handleBorrow = async () => {
+    const userProfile = localStorage.getItem("userProfile");
+    if (!userProfile) {
+      notification.warning({
+        message: "Login Required",
+        description: "Please log in to borrow this book.",
+      });
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const result = await borrowBook(id);
+      notification.success({
+        message: "Borrow Success",
+        description: `You have successfully borrowed "${result.book.title}"!`,
+      });
+    } catch (error) {
+      console.error("Failed to borrow book:", error);
+    }
+  };
 
   if (loading) return <h2 className="text-center mt-5">Loading...</h2>;
   if (error) return <h2 className="text-center text-danger mt-5">{error}</h2>;
@@ -82,6 +105,16 @@ const BookDetailPage = () => {
             >
               {book.stock > 0 ? `Available: ${book.stock}` : "Out of Stock"}
             </p>
+
+            <Button
+              type="primary"
+              size="large"
+              disabled={book.stock <= 0}
+              onClick={handleBorrow}
+              style={{ marginTop: "20px" }}
+            >
+              Borrow Book
+            </Button>
           </div>
         </div>
       </div>
