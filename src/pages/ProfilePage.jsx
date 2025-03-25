@@ -9,7 +9,6 @@ import {
 import "bootstrap/dist/css/bootstrap.min.css";
 import "antd/dist/reset.css";
 import "../styles/profilePage.css";
-import { getInfo } from "../services/Authentication";
 import UserInfo from "../components/UserInfo";
 import ChangePassword from "../components/ChangePassword";
 import ChangeEmail from "../components/ChangeEmail";

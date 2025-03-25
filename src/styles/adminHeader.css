@@ -1,0 +1,27 @@
+.admin-header {
+	background: #001529;
+	padding: 0 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	position: fixed;
+	top: 0;
+	left: 200px;
+	right: 0;
+	z-index: 1000;
+  }
+  
+  .admin-header-title {
+	color: #fff;
+	margin: 0;
+  }
+  
+  .admin-header-logout-btn {
+	background: #ff4d4f !important;
+	border-color: #ff4d4f !important;
+  }
+  
+  .admin-header-logout-btn:hover {
+	background: #ff7875 !important;
+	border-color: #ff7875 !important;
+  }

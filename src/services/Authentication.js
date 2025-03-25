@@ -38,16 +38,6 @@ export const logout = async () => {
 	}
 };
 
-export const refreshToken = async () => {
-	try {
-		const response = await api.post("/auth/refresh", {});
-		return response.data.result;
-	} catch (error) {
-		handleApiError(error, "refreshing token");
-		return error;
-	}
-};
-
 export const getInfo = async () => {
 	try {
 		const response = await api.get(`/auth/info`);

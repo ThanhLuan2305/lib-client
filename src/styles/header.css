@@ -1,6 +1,7 @@
 .header {
 	background-color: #049dd9;
 	margin-bottom: 10px;
+	line-height: 6vh;
 }
 
 .ant-dropdown-menu {

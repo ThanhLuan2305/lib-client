@@ -1,0 +1,22 @@
+.user-table {
+	width: 100%;
+	box-sizing: border-box;
+  }
+  
+  .user-table .ant-table {
+	border-radius: 8px;
+	overflow: hidden;
+  }
+  
+  .user-table .ant-table-thead > tr > th {
+	background: #f0f2f5;
+	font-weight: 600;
+  }
+  
+  .user-table .ant-table-tbody > tr:hover > td {
+	background: #e6f7ff;
+  }
+  
+  .user-table .ant-btn {
+	padding: 4px 8px;
+  }

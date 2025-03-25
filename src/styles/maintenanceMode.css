@@ -1,0 +1,145 @@
+.maintenance-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #e6f7ff 0%, #f0f2f5 100%);
+	padding: 32px;
+	text-align: center;
+	overflow: hidden;
+}
+
+.maintenance-content {
+	background: #fff;
+	border-radius: 12px;
+	padding: 48px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+	max-width: 600px;
+	width: 100%;
+	animation: zoomIn 0.8s ease-in-out;
+}
+
+.maintenance-icon {
+	margin-bottom: 24px;
+	animation: pulse 2s infinite ease-in-out;
+}
+
+.maintenance-title {
+	font-size: 48px !important;
+	color: #1890ff !important;
+	margin-bottom: 16px !important;
+	animation: fadeInDown 0.8s ease-in-out;
+}
+
+.maintenance-subtitle {
+	font-size: 20px !important;
+	color: #595959 !important;
+	display: block;
+	margin-bottom: 24px !important;
+	animation: fadeInUp 0.8s ease-in-out;
+}
+
+.maintenance-time {
+	font-size: 16px !important;
+	color: #8c8c8c !important;
+	display: block;
+	margin-bottom: 32px !important;
+	animation: fadeInUp 0.8s ease-in-out 0.2s;
+}
+
+.maintenance-button {
+	font-size: 18px !important;
+	height: 48px !important;
+	padding: 0 32px !important;
+	border-radius: 8px !important;
+	background: #1890ff !important;
+	border: none !important;
+	transition: all 0.3s ease !important;
+	animation: fadeInUp 0.8s ease-in-out 0.4s;
+}
+
+.maintenance-button:hover {
+	background: #40a9ff !important;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* Animations */
+@keyframes zoomIn {
+	from {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.1);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+	.maintenance-content {
+		padding: 24px;
+	}
+
+	.maintenance-icon {
+		font-size: 80px !important;
+	}
+
+	.maintenance-title {
+		font-size: 32px !important;
+	}
+
+	.maintenance-subtitle {
+		font-size: 16px !important;
+	}
+
+	.maintenance-time {
+		font-size: 14px !important;
+	}
+
+	.maintenance-button {
+		font-size: 16px !important;
+		height: 40px !important;
+		padding: 0 24px !important;
+	}
+}

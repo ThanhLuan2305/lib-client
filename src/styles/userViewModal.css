@@ -1,0 +1,33 @@
+.user-view-modal .ant-modal {
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	margin: 0 auto;
+}
+
+.user-view-modal .ant-modal-body {
+	padding: 24px;
+}
+
+.user-view-modal .ant-descriptions-item-label {
+	width: 200px;
+	background: #f0f2f5;
+	font-weight: 500;
+}
+
+.user-view-modal .ant-descriptions-item-content {
+	background: #fff;
+}
+
+.user-view-modal .ant-tag {
+	margin-right: 4px;
+}
+
+/* Đảm bảo modal không bị ảnh hưởng bởi cuộn */
+.user-view-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1000;
+}

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
+import { removeAuthHeader } from "../services/ApiFuntions";
 import {
   login as loginAPI,
   logout as logoutAPI,
@@ -10,7 +11,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null); // Thêm state để lưu role
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const storedUser = JSON.parse(localStorage.getItem("userProfile"));
       setUser(storedUser);
-      // Lấy role từ storedUser
       const userRole = storedUser?.roles?.[0]?.name || null;
       setRole(userRole);
     } catch (error) {
@@ -43,10 +43,10 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log("🔄 Đang gọi API đăng nhập...");
-      await loginAPI(email, password);
+      const token = await loginAPI(email, password);
+      localStorage.setItem("accessToken", JSON.stringify(token.accessToken));
       const userInfo = await getInfo();
       setUser(userInfo);
-      // Lấy role từ userInfo
       const userRole = userInfo?.roles?.[0]?.name || null;
       setRole(userRole);
       localStorage.setItem("userProfile", JSON.stringify(userInfo));
@@ -62,14 +62,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      console.log("👋 Đang gọi API logout...");
       await logoutAPI();
-      console.log("✅ API logout thành công!");
 
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userProfile");
-      setUser(null);
-      setRole(null); // Reset role khi logout
+      setUser(null);removeAuthHeader();
+      setRole(null);
+      removeAuthHeader();
     } catch (error) {
       console.error("❌ Lỗi khi logout:", error);
     }
@@ -87,3 +86,5 @@ export const AuthProvider = ({ children }) => {
 AuthProvider.propTypes = {
   children: PropTypes.node,
 };
+
+export const useAuth = () => React.useContext(AuthContext);

@@ -1,0 +1,220 @@
+.maintenance-mode-page {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: linear-gradient(135deg, #e6f7ff 0%, #f0f2f5 100%);
+	padding: 40px 20px;
+	animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Tiêu đề */
+.maintenance-mode-title {
+	font-size: 36px !important;
+	color: #001529 !important;
+	margin-bottom: 32px !important;
+	animation: fadeInDown 0.8s ease-in-out;
+}
+
+.maintenance-card {
+	width: 100%;
+	max-width: 1000px;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+	transition: all 0.3s ease;
+	animation: zoomIn 0.8s ease-in-out;
+}
+
+.maintenance-on {
+	border: 2px solid #ff4d4f !important;
+	background: rgba(255, 77, 79, 0.05);
+}
+
+.maintenance-off {
+	border: 2px solid #52c41a !important;
+	background: rgba(82, 196, 26, 0.05);
+}
+
+.maintenance-card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Nội dung bên trong Card */
+.maintenance-content {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+}
+
+/* Icon trạng thái */
+.status-icon {
+	flex-shrink: 0;
+}
+
+.icon-on {
+	font-size: 48px !important;
+	color: #ff4d4f !important;
+	animation: pulse 2s infinite ease-in-out;
+}
+
+.icon-off {
+	font-size: 48px !important;
+	color: #52c41a !important;
+	animation: pulse 2s infinite ease-in-out;
+}
+
+/* Thông tin trạng thái */
+.status-details {
+	flex: 1;
+}
+
+.status-text-on {
+	font-size: 20px !important;
+	color: #ff4d4f !important;
+}
+
+.status-text-off {
+	font-size: 20px !important;
+	color: #52c41a !important;
+}
+
+.status-time {
+	display: block;
+	margin-top: 8px !important;
+	font-size: 14px !important;
+	color: #8c8c8c !important;
+}
+
+/* Switch */
+.toggle-switch {
+	flex-shrink: 0;
+}
+
+.switch-on {
+	background-color: #ff4d4f !important;
+	width: 60px !important;
+	height: 32px !important;
+	transition: background-color 0.3s ease !important;
+}
+
+.switch-off {
+	background-color: #52c41a !important;
+	width: 60px !important;
+	height: 32px !important;
+	transition: background-color 0.3s ease !important;
+}
+
+.switch-on .ant-switch-handle,
+.switch-off .ant-switch-handle {
+	width: 28px !important;
+	height: 28px !important;
+	top: 2px !important;
+}
+
+.switch-on .ant-switch-handle::before,
+.switch-off .ant-switch-handle::before {
+	background-color: #fff !important;
+}
+
+.switch-on:hover,
+.switch-off:hover {
+	opacity: 0.9;
+}
+
+/* Animations */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes zoomIn {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.1);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+	.maintenance-mode-page {
+		padding: 20px;
+	}
+
+	.maintenance-mode-title {
+		font-size: 28px !important;
+	}
+
+	.maintenance-card {
+		padding: 16px;
+	}
+
+	.maintenance-content {
+		flex-direction: column;
+		text-align: center;
+		gap: 16px;
+	}
+
+	.icon-on,
+	.icon-off {
+		font-size: 36px !important;
+	}
+
+	.status-text-on,
+	.status-text-off {
+		font-size: 16px !important;
+	}
+
+	.status-time {
+		font-size: 12px !important;
+	}
+
+	.switch-on,
+	.switch-off {
+		width: 50px !important;
+		height: 28px !important;
+	}
+
+	.switch-on .ant-switch-handle,
+	.switch-off .ant-switch-handle {
+		width: 24px !important;
+		height: 24px !important;
+		top: 2px !important;
+	}
+}

@@ -1,0 +1,49 @@
+.book-modal .ant-modal {
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	margin: 0 auto;
+}
+
+.book-modal .ant-modal-body {
+	padding: 24px;
+	max-height: 75vh;
+	/* Giới hạn chiều cao tối đa */
+	overflow-y: auto;
+	/* Thêm cuộn dọc */
+}
+
+.book-modal .ant-form-item {
+	margin-bottom: 16px;
+}
+
+.book-modal-image-preview {
+	margin-bottom: 16px;
+	text-align: center;
+}
+
+.book-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1000;
+}
+
+/* Đảm bảo thanh cuộn hiển thị đẹp */
+.book-modal .ant-modal-body::-webkit-scrollbar {
+	width: 8px;
+}
+
+.book-modal .ant-modal-body::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+.book-modal .ant-modal-body::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 4px;
+}
+
+.book-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}

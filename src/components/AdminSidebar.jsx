@@ -13,7 +13,7 @@ import "../styles/adminSidebar.css";
 const AdminSidebar = () => {
   return (
     <div className="admin-sidebar">
-	  <div className="admin-sidebar__logo"><h2>ADMIN</h2></div>
+	  <div className="admin-sidebar__logo"><h2>Menu</h2></div>
       <Menu
         mode="inline"
         defaultSelectedKeys={["dashboard"]}

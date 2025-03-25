@@ -19,6 +19,7 @@ import MaintenanceModePage from "./pages/admin/MaintenanceModePage";
 import ActivityLogPage from "./pages/admin/ActivityLogPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MaintenanceMode from "./pages/MaintenanceMode";
 import "./App.css";
 
 function App() {
@@ -144,6 +145,7 @@ function App() {
             }
           />
         </Route>
+        <Route path="/maintenance" element={<MaintenanceMode />} />
       </Routes>
     </AuthProvider>
   );

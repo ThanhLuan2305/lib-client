@@ -1,0 +1,43 @@
+.book-search {
+	background: #f5f5f5;
+	padding: 16px;
+	border-radius: 8px;
+}
+
+.book-search-buttons {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	height: 100%;
+}
+
+.label-placeholder {
+	height: 22px;
+	/* Chiều cao tương đương với label của các Form.Item khác */
+	margin-bottom: 8px;
+	/* Khoảng cách tương đương với margin-bottom của label */
+}
+
+.button-wrapper {
+	display: flex;
+	gap: 8px;
+}
+
+.book-search-buttons .ant-btn {
+	width: 100px;
+}
+
+@media (max-width: 768px) {
+	.book-search-buttons {
+		justify-content: flex-start;
+	}
+
+	.book-search-buttons .ant-btn {
+		width: 80px;
+	}
+
+	.label-placeholder {
+		display: none;
+		/* Ẩn placeholder trên màn hình nhỏ */
+	}
+}
