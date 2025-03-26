@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Select, Button, Row, Col, Dropdown, Space } from "antd";
+import { Input, Button, Row, Col, Dropdown, Space } from "antd";
 import { FilterOutlined } from "@ant-design/icons";
 import "../styles/bookFilter.css";
 
-const { Option } = Select;
-
 const BookFilter = ({ setFilters }) => {
   const [filterValues, setFilterValues] = useState({
-    title: [],
-    author: [],
-    typeName: [],
-    publisher: [],
+    title: "",
+    author: "",
+    typeName: "",
+    publisher: "",
   });
 
   const handleFilterChange = (field, value) => {
@@ -19,105 +17,45 @@ const BookFilter = ({ setFilters }) => {
   };
 
   const applyFilters = () => {
-    setFilters(filterValues);
+    const activeFilters = Object.fromEntries(
+      Object.entries(filterValues).filter(([_, value]) => value.trim() !== "")
+    );
+    setFilters(activeFilters);
   };
 
   const clearFilters = () => {
     setFilterValues({
-      title: [],
-      author: [],
-      typeName: [],
-      publisher: [],
+      title: "",
+      author: "",
+      typeName: "",
+      publisher: "",
     });
     setFilters({});
   };
 
-  const filterMenu = (
+  // Định nghĩa filterMenu như hàm helper
+  const renderFilterMenu = ({
+    filterValues,
+    handleFilterChange,
+    applyFilters,
+    clearFilters,
+  }) => (
     <div className="filter-dropdown">
       <Row gutter={[16, 16]}>
         {[
-          {
-            label: "Title",
-            field: "title",
-            options: [
-              "Effective Java",
-              "Clean Code",
-              "Head First Design Patterns",
-            ],
-          },
-          {
-            label: "Author",
-            field: "author",
-            options: [
-              "J.K. Rowling",
-              "J.R.R. Tolkien",
-              "Joshua Bloch",
-              "Martin Kleppmann",
-              "Robert C. Martin",
-              "Eric Freeman",
-              "Alex Petrov",
-              "Thomas H. Cormen",
-              "Yuval Noah Harari",
-              "David McCullough",
-              "Stephen Hawking",
-              "Brian W. Kernighan",
-              "Jared Diamond",
-              "George Orwell",
-              "Dennis M.RitChie",
-            ],
-          },
-          {
-            label: "Category",
-            field: "typeName",
-            options: [
-              "Fantasy",
-              "Database",
-              "Fiction",
-              "Non-Fiction",
-              "History",
-              "Science",
-            ],
-          },
-          {
-            label: "Publisher",
-            field: "publisher",
-            options: [
-              "Bloomsbury",
-              "Penguin",
-              "Addison-Wesley",
-              "O'Reilly Media",
-              "Prentice Hall",
-              "MIT Press",
-              "Harper",
-              "Simon & Schuster",
-              "Bantam",
-              "W.W. Norton & Company",
-              "Signet Classic",
-            ],
-          },
-        ].map(({ label, field, options }) => (
+          { label: "Title", field: "title" },
+          { label: "Author", field: "author" },
+          { label: "Category", field: "typeName" },
+          { label: "Publisher", field: "publisher" },
+        ].map(({ label, field }) => (
           <Col span={24} key={field}>
             <label>{label}</label>
-            <Select
-              placeholder={`Choose ${label.toLowerCase()}`}
-              style={{ width: "100%" }}
-              onChange={(value) => handleFilterChange(field, value)}
+            <Input
+              placeholder={`Search by ${label.toLowerCase()}`}
               value={filterValues[field]}
+              onChange={(e) => handleFilterChange(field, e.target.value)}
               allowClear
-              mode="multiple"
-              maxTagCount="responsive"
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {options.map((option) => (
-                <Option key={option} value={option}>
-                  {option}
-                </Option>
-              ))}
-            </Select>
+            />
           </Col>
         ))}
       </Row>
@@ -135,7 +73,14 @@ const BookFilter = ({ setFilters }) => {
     <div className="book-filter-container mb-2">
       <Dropdown
         trigger={["click"]}
-        dropdownRender={() => filterMenu}
+        dropdownRender={() =>
+          renderFilterMenu({
+            filterValues,
+            handleFilterChange,
+            applyFilters,
+            clearFilters,
+          })
+        }
         placement="bottomRight"
       >
         <Button type="primary">

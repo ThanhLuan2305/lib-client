@@ -81,11 +81,6 @@ api.interceptors.response.use(
     }
 
     const originalRequest = error.config;
-    if (error.response?.status === 503) {
-      const fromTime = error.response.data?.result?.from || new Date().toISOString();
-      window.location.href = "/maintenance";
-      localStorage.setItem("maintenanceFromTime", fromTime);
-    }
     if (error.response.status === 401 && originalRequest.url.includes("/auth/refresh")) {
       console.error("❌ Refresh token request failed:", error.response.data);
       return Promise.reject(error.response.data);

@@ -36,11 +36,6 @@ const MaintenanceModePage = () => {
           ? "The system is currently under maintenance."
           : "The system is running normally."
       );
-      // Lưu trạng thái vào localStorage
-      localStorage.setItem(
-        "maintenanceMode",
-        JSON.stringify(result.maintenanceMode)
-      );
     } catch (error) {
       message.error(error.message);
     } finally {

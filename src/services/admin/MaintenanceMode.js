@@ -12,7 +12,7 @@ export const setMaintenanceMode = async (status) => {
 
 export const getMaintenanceMode = async () => {
   try {
-    const response = await api.get("/admin/config/maintenance/status");
+    const response = await api.get("/config/maintenance/status");
     return response.data.result;
   } catch (error) {
     handleApiError(error, "fetching maintenance mode status");
