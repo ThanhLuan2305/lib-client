@@ -1,6 +1,7 @@
 const errorMessages = {
-	9999: "Login failed, please double-check your email and password.",
-	1000: "Invalid key error!",
+	9999: "Uncategorized error.",
+	9998: "JWT have a problem when decoder",
+	9997: "Login failed, please double-check your email and password.",
 	1001: "Invalid key error!",
 	1002: "User already exists!",
 	1003: "Invalid email address!",
@@ -46,6 +47,10 @@ const errorMessages = {
 	1043: "OTP is duplicated!",
 	1044: "User has not verified email or phone number!",
 	1045: "Phone number already exists!",
+	1047: "You can not delete admin!",
+	1048: "You can not update admin!",
+	1049: "Book is deleted!",
+	1050: "Book is currently borrowed!",
 	503: "The system is under maintenance. Please try again later!",
 };
 
@@ -54,12 +59,14 @@ const errorMessages = {
  * @param {number} errorCode - Error code from API
  * @returns {string} - User-friendly error message
  */
-export const getErrorMessage = (errorCode) => {
-	return errorMessages[errorCode] || "An unknown error occurred!";
+export const getErrorMessage = (error) => {
+	if (error?.message && error.message.trim() !== "") {
+		return error.message;
+	}
+	return errorMessages[error?.code] || "An unknown error occurred!";
 };
-
-export const getErrorDetails = (errorCode) => {
-	const code = errorCode;
-	const message = errorMessages[errorCode] || "An unknown error occurred!";
+export const getErrorDetails = (error) => {
+	const code = error?.code || null;
+	const message = getErrorMessage(error);
 	return { code, message };
 };

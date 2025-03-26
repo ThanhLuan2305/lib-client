@@ -29,6 +29,7 @@ export const searchBook = async (page = 1, limit = 6, title = "") => {
         size: limit,
         sort: "title,asc",
         "title.contains": title,
+        "deleted.equals": false,
       },
     });
     return response.data.result;
@@ -43,9 +44,7 @@ export const filterBook = async (page = 1, limit = 6, filters = {}) => {
     size: limit,
     sort: "title,asc",
   });
-  console.log("🚀 ~ file: Common.js ~ line 90 ~ filterBook ~ queryParams", queryParams);
 
-  // Duyệt qua từng field trong filters
   Object.entries(filters).forEach(([key, value]) => {
     if (value) {
       if (Array.isArray(value) && value.length > 0) {
@@ -58,7 +57,7 @@ export const filterBook = async (page = 1, limit = 6, filters = {}) => {
       }
     }
   });
-
+  queryParams.append("deleted.equals", "false");
   try {
     const response = await api.get(`/books/search?${queryParams.toString()}`);
     return response.data.result;

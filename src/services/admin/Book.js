@@ -4,21 +4,18 @@ import { handleApiError } from "../../utils/apiErrorHandler";
 // Lấy danh sách sách (GET /books)
 export const getBooks = async (page = 1, limit = 10) => {
 	try {
-		const response = await api.get(`/books?offset=${page - 1}&limit=${limit}`);
+		const response = await api.get(`/admin/books?offset=${page - 1}&limit=${limit}`);
 		return response.data.result;
 	} catch (error) {
 		handleApiError(error, "fetching books");
 	}
 };
 
-// Tìm kiếm sách (GET /admin/books)
 export const searchBooks = async (criteria, page = 1, limit = 10) => {
 	const queryParams = new URLSearchParams({
 		offset: page - 1,
 		limit: limit,
 	});
-
-	// Thêm các tiêu chí tìm kiếm vào query params
 	if (criteria.isbn) queryParams.append("isbn.contains", criteria.isbn);
 	if (criteria.title) queryParams.append("title.contains", criteria.title);
 	if (criteria.author) queryParams.append("author.contains", criteria.author);
@@ -37,17 +34,16 @@ export const searchBooks = async (criteria, page = 1, limit = 10) => {
 	if (criteria.location) queryParams.append("location.contains", criteria.location);
 
 	try {
-		const response = await api.get(`/books/search?${queryParams.toString()}`);
+		const response = await api.get(`/admin/books/search?${queryParams.toString()}`);
 		return response.data.result;
 	} catch (error) {
 		handleApiError(error, "searching books");
 	}
 };
 
-// Lấy thông tin một cuốn sách (GET /admin/books/{id})
 export const getBook = async (id) => {
 	try {
-		const response = await api.get(`/books/${id}`);
+		const response = await api.get(`/admin/books/${id}`);
 		return response.data.result;
 	} catch (error) {
 		handleApiError(error, "fetching book details");

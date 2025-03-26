@@ -133,6 +133,7 @@ const BookModal = ({ open, onCancel, onOk, initialValues, isEdit }) => {
 
   return (
     <Modal
+      forceRender
       className="book-modal"
       title={isEdit ? "Edit Book" : "Add Book"}
       open={open}
@@ -140,7 +141,7 @@ const BookModal = ({ open, onCancel, onOk, initialValues, isEdit }) => {
       onOk={() => form.submit()}
       width={600}
       getContainer={() => document.body}
-      styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }} // Sửa bodyStyle thành styles.body
+      styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item

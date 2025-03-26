@@ -21,7 +21,6 @@ const MaintenanceModePage = () => {
     "The system is running normally."
   );
 
-  // Lấy trạng thái chế độ bảo trì khi component được mount
   useEffect(() => {
     fetchMaintenanceMode();
   }, []);
@@ -36,6 +35,11 @@ const MaintenanceModePage = () => {
         result.maintenanceMode
           ? "The system is currently under maintenance."
           : "The system is running normally."
+      );
+      // Lưu trạng thái vào localStorage
+      localStorage.setItem(
+        "maintenanceMode",
+        JSON.stringify(result.maintenanceMode)
       );
     } catch (error) {
       message.error(error.message);
@@ -52,7 +56,8 @@ const MaintenanceModePage = () => {
         `Maintenance mode ${checked ? "enabled" : "disabled"} successfully`
       );
       setMaintenanceMode(checked);
-      setFromTime(checked ? dayjs().toISOString() : null);
+      const newFromTime = checked ? dayjs().toISOString() : null;
+      setFromTime(newFromTime);
       setStatusMessage(
         checked
           ? "The system is currently under maintenance."
@@ -60,7 +65,6 @@ const MaintenanceModePage = () => {
       );
     } catch (error) {
       message.error(error.message);
-      // Nếu thất bại, giữ nguyên trạng thái cũ
       setMaintenanceMode(!checked);
     } finally {
       setLoading(false);
@@ -72,7 +76,7 @@ const MaintenanceModePage = () => {
       <Title level={2} className="maintenance-mode-title">
         Maintenance Mode Settings
       </Title>
-      <Spin spinning={loading} size="large">
+      <Spin spinning={loading} size="large" className="custom-spin">
         <Card
           className={`maintenance-card ${
             maintenanceMode ? "maintenance-on" : "maintenance-off"

@@ -85,3 +85,20 @@
 	align-items: center;
 	justify-content: center;
 }
+
+@media (max-width: 991px) {
+	.navbar-collapse {
+	  background-color: #049dd9;
+	  padding: 10px;
+	}
+	.d-flex {
+	  flex-direction: column;
+	  width: 100%;
+	}
+	.ms-auto {
+	  margin-left: 0 !important;
+	}
+	.w-50 {
+	  width: 100% !important;
+	}
+  }

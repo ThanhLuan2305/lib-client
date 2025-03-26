@@ -11,10 +11,6 @@ export const api = axios.create({
   },
 });
 
-let accessToken = localStorage.getItem("accessToken");
-if (accessToken) {
-  api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-}
 
 let isRefreshing = false;
 let failedRequests = [];
@@ -22,7 +18,7 @@ let failedRequests = [];
 const refreshToken = async () => {
   try {
     console.log("🔄 Refreshing token...");
-    const response = await api.post("/auth/refresh", {}, { withCredentials: true });
+    const response = await axios.post("http://localhost:8080/auth/refresh", {}, { withCredentials: true });
 
     if (!response.data?.result?.accessToken) {
       throw new Error("No new access token received!");
@@ -47,26 +43,33 @@ const refreshToken = async () => {
       description: "Your session has expired. Please log in again.",
     });
 
-
+    window.location.href = "/login";
     throw error;
   }
 };
 
-api.interceptors.request.use(function (config) {
-  if (config.url !== "/auth/refresh") {
+const skipAuthUrls = ["/auth/refresh", "/auth/login", "/book", "/book/search"];
+
+api.interceptors.request.use(
+  function (config) {
+    if (!skipAuthUrls.includes(config.url)) {
       const token = localStorage.getItem("accessToken");
       const auth = token ? `Bearer ${token}` : '';
       config.headers["Authorization"] = auth;
-  }
-  if (!config.headers.Accept && config.headers["Content-Type"]) {
+    }
+
+    if (!config.headers.Accept && config.headers["Content-Type"]) {
       config.headers.Accept = "application/json";
       config.headers["Content-Type"] = "application/json; charset=utf-8";
+    }
+    
+    return config;
+  },
+  function (error) {
+    // Xử lý lỗi request
+    return Promise.reject(error);
   }
-  return config;
-}, function (error) {
-  // Do something with request error
-  return Promise.reject(error);
-});
+);
 
 // Interceptor xử lý lỗi và refresh token
 api.interceptors.response.use(
@@ -79,19 +82,16 @@ api.interceptors.response.use(
 
     const originalRequest = error.config;
     if (error.response?.status === 503) {
-      // Chuyển hướng đến trang Maintenance Mode
       const fromTime = error.response.data?.result?.from || new Date().toISOString();
       window.location.href = "/maintenance";
       localStorage.setItem("maintenanceFromTime", fromTime);
     }
-    // Nếu request /auth/refresh bị lỗi, không thử lại
     if (error.response.status === 401 && originalRequest.url.includes("/auth/refresh")) {
       console.error("❌ Refresh token request failed:", error.response.data);
       return Promise.reject(error.response.data);
     }
-    // Nếu token hết hạn (401 Unauthorized)
     if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Đánh dấu request đã thử refresh
+      originalRequest._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;
@@ -108,7 +108,6 @@ api.interceptors.response.use(
           isRefreshing = false;
           failedRequests = [];
           console.error("❌ Failed to refresh token:", refreshError);
-          window.location.href = "/login";
           return Promise.reject(refreshError);
         }
       }
