@@ -18,27 +18,29 @@ const UserModal = ({ open, onCancel, onOk, initialValues, isEdit }) => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    if (initialValues) {
-      form.setFieldsValue({
-        email: initialValues.email,
-        phoneNumber: initialValues.phoneNumber,
-        password: initialValues.password,
-        fullName: initialValues.fullName,
-        birthDate: initialValues.birthDate
-          ? dayjs(initialValues.birthDate)
-          : null,
-        verificationStatus: initialValues.verificationStatus,
-        listRole: initialValues.roles
-          ? initialValues.roles.map((role) => role.name)
-          : [],
-        deleted: initialValues.deleted,
-        resetPassword: initialValues.resetPassword,
-        lateReturnCount: initialValues.lateReturnCount,
-      });
-    } else {
-      form.resetFields();
+    if (open) {
+      if (initialValues) {
+        form.setFieldsValue({
+          email: initialValues.email,
+          phoneNumber: initialValues.phoneNumber,
+          password: initialValues.password,
+          fullName: initialValues.fullName,
+          birthDate: initialValues.birthDate
+            ? dayjs(initialValues.birthDate)
+            : null,
+          verificationStatus: initialValues.verificationStatus,
+          listRole: initialValues.roles
+            ? initialValues.roles.map((role) => role.name)
+            : [],
+          deleted: initialValues.deleted,
+          resetPassword: initialValues.resetPassword,
+          lateReturnCount: initialValues.lateReturnCount,
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [initialValues, form]);
+  }, [initialValues, form, open]);
 
   const onFinish = (values) => {
     const formattedValues = {
@@ -122,10 +124,10 @@ const UserModal = ({ open, onCancel, onOk, initialValues, isEdit }) => {
           ]}
         >
           <Select placeholder="Select verification status">
-            <Option value="UNVERIFIED">Verified</Option>
+            <Option value="UNVERIFIED">Unverified</Option>
             <Option value="EMAIL_VERIFIED">Email verified</Option>
             <Option value="PHONE_VERIFIED">Phone verified</Option>
-            <Option value="FULLY_VERIFIED">Full verified</Option>
+            <Option value="FULLY_VERIFIED">Fully verified</Option>
           </Select>
         </Form.Item>
         <Form.Item

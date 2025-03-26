@@ -1,0 +1,102 @@
+/* Container chính */
+.activity-log-table-container {
+	padding: 24px;
+	background: #f5f5f5;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Nút Delete All */
+.activity-log-actions {
+	margin-bottom: 16px;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.activity-log-actions .ant-btn {
+	border-radius: 4px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+}
+
+.activity-log-actions .ant-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-log-table {
+	background: #fff;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.activity-log-table .ant-table-thead>tr>th {
+	background: #1890ff;
+	color: #fff;
+	font-weight: 600;
+	border-bottom: 2px solid #e8e8e8;
+}
+
+.activity-log-table .ant-table-tbody>tr:hover>td {
+	background: #fafafa;
+	transition: background 0.2s;
+}
+
+.activity-log-table .ant-table-cell {
+	padding: 12px !important;
+}
+
+/* Phân trang */
+.d-flex.justify-content-center.mt-4 {
+	margin-top: 24px !important;
+}
+
+.ant-pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.ant-pagination-item {
+	border-radius: 4px;
+	border: 1px solid #d9d9d9;
+	margin: 0 4px;
+	transition: all 0.3s ease;
+}
+
+.ant-pagination-item-active {
+	background: #1890ff;
+	border-color: #1890ff;
+}
+
+.ant-pagination-item-active a {
+	color: #fff;
+}
+
+.ant-pagination-item:hover {
+	border-color: #1890ff;
+}
+
+.ant-pagination-prev,
+.ant-pagination-next {
+	border-radius: 4px;
+}
+
+.ant-pagination-prev:hover,
+.ant-pagination-next:hover {
+	border-color: #1890ff;
+	color: #1890ff;
+}
+
+.ant-pagination-options .ant-select {
+	margin-left: 12px;
+	border-radius: 4px;
+}
+
+.ant-pagination-options .ant-select-selector {
+	border-color: #d9d9d9 !important;
+}
+
+.ant-pagination-options .ant-select:hover .ant-select-selector {
+	border-color: #1890ff !important;
+}
