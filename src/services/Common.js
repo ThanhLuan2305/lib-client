@@ -66,4 +66,12 @@ export const filterBook = async (page = 1, limit = 6, filters = {}) => {
   }
 };
 
-
+export const getRole = async () => {
+  try {
+    const response = await api.get("/account/role", {});
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "get role");
+    return error;
+  }
+};

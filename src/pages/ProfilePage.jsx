@@ -24,7 +24,6 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        // Lấy dữ liệu từ localStorage
         const profile = localStorage.getItem("userProfile");
         let parsedProfile = null;
         if (profile) {

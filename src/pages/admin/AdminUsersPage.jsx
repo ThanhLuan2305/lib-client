@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Pagination, Space } from "antd";
+import { Button, Pagination, Space, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import UserTable from "../../components/UserTable";
 import UserSearch from "../../components/UserSearch";
@@ -89,6 +89,7 @@ const AdminUsersPage = () => {
   const handleDeleteUser = async (id) => {
     try {
       await deleteUser(id);
+      message.success("User deleted successfully");
       loadUsers();
     } catch (error) {
       console.error("❌ Failed to delete user:", error);
@@ -102,8 +103,10 @@ const AdminUsersPage = () => {
     try {
       if (isEdit) {
         await updateUser(selectedUser.id, values);
+        message.success("User updated successfully");
       } else {
         await createUser(values);
+        message.success("User created successfully");
       }
       setModalVisible(false);
       loadUsers();
@@ -142,14 +145,14 @@ const AdminUsersPage = () => {
         style={{ marginTop: "20px", textAlign: "right" }}
       />
       <UserModal
-        open={modalVisible} // Sử dụng open thay vì visible
+        open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleModalOk}
         initialValues={selectedUser}
         isEdit={isEdit}
       />
       <UserViewModal
-        open={viewModalVisible} // Sử dụng open thay vì visible
+        open={viewModalVisible}
         onCancel={() => setViewModalVisible(false)}
         user={selectedUser}
       />

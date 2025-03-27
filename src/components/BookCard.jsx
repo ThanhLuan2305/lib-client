@@ -12,7 +12,7 @@ import {
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, onBorrowSuccess }) => {
   const navigate = useNavigate();
 
   const handleBorrow = async () => {
@@ -32,10 +32,15 @@ const BookCard = ({ book }) => {
         message: "Borrow Success",
         description: `You have successfully borrowed "${result.book.title}"!`,
       });
+      if (onBorrowSuccess) {
+        const newStock = book.stock - 1; // Giảm stock đi 1
+        onBorrowSuccess(book.id, newStock);
+      }
     } catch (error) {
       console.error("Failed to borrow book:", error);
     }
   };
+
   return (
     <div>
       <a
@@ -91,6 +96,7 @@ const BookCard = ({ book }) => {
 
 BookCard.propTypes = {
   book: PropTypes.object.isRequired,
+  onBorrowSuccess: PropTypes.func,
 };
 
 export default BookCard;

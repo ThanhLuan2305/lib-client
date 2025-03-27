@@ -6,13 +6,6 @@ import { notification } from "antd";
 export const login = async (email, password) => {
 	try {
 		const response = await api.post("/auth/login", { email, password });
-		const { accessToken } = response.data.result;
-
-		if (accessToken) {
-			api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-			localStorage.setItem("accessToken", accessToken);
-			console.log("Access token set:", accessToken);
-		}
 
 		notification.success({
 			message: "Logged in",
@@ -34,16 +27,6 @@ export const logout = async () => {
 		notification.success({ message: "Logged out", description: "You have successfully logged out." });
 	} catch (error) {
 		handleApiError(error, "logging out");
-		return error;
-	}
-};
-
-export const getInfo = async () => {
-	try {
-		const response = await api.get(`/auth/info`);
-		return response.data.result;
-	} catch (error) {
-		handleApiError(error, "get info user");
 		return error;
 	}
 };

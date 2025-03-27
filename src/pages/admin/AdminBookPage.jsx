@@ -82,6 +82,7 @@ const AdminBooksPage = () => {
     try {
       await deleteBook(id);
       loadBooks();
+      message.success("Book delete successfully");
     } catch (error) {
       // Lỗi đã được xử lý trong service
     }

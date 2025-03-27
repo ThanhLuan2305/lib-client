@@ -2,26 +2,29 @@ import React, { useState, useEffect } from "react";
 import { message } from "antd";
 import AdminActivityLog from "../../components/admin/AdminActivityLog";
 import {
-  getActivityLog,
+  getActivityLogs,
   deleteActivityLog,
 } from "../../services/admin/ActivityLog";
 
 const ActivityLogPage = () => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); // Dùng 1-based cho CustomPagination
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const [pageSize] = useState(10); // Có thể thêm state để thay đổi pageSize nếu cần
+  const [pageSize, setPageSize] = useState(10); // Cho phép thay đổi pageSize
 
-  const fetchActivityLog = async (page = 0, size = 10) => {
+  const fetchActivityLog = async (offset = 0, limit = pageSize) => {
     setLoading(true);
     try {
-      const result = await getActivityLog(page, size);
+      const result = await getActivityLogs(offset, limit);
+      console.log("API Response:", result); // Debug dữ liệu trả về
       setActivities(result.content || []);
-      setTotalElements(result.totalElements);
-      setCurrentPage(page + 1); // Chuyển từ 0-based (API) sang 1-based (Pagination)
+      setTotalElements(result.totalElements || 0);
+      setCurrentPage(offset / limit + 1); // Đồng bộ currentPage với offset
     } catch (error) {
       message.error("Failed to load activity logs");
+      setActivities([]);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -32,7 +35,7 @@ const ActivityLogPage = () => {
     try {
       await deleteActivityLog();
       message.success("All activity logs deleted successfully");
-      fetchActivityLog(0, pageSize); // Tải lại trang đầu tiên
+      fetchActivityLog(0, pageSize);
     } catch (error) {
       message.error("Failed to delete activity logs");
     } finally {
@@ -40,8 +43,12 @@ const ActivityLogPage = () => {
     }
   };
 
-  const handlePageChange = (page) => {
-    fetchActivityLog(page - 1, pageSize); // Chuyển sang 0-based cho API
+  const handlePageChange = (page, size) => {
+    const newPageSize = size || pageSize;
+    const offset = (page - 1); // Tính offset từ page
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+    fetchActivityLog(offset, newPageSize);
   };
 
   useEffect(() => {

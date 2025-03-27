@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchBookById } from "../services/Common";
-import { borrowBook } from "../services/User"; // Import hàm borrowBook
+import { borrowBook } from "../services/User";
 import { Button, notification } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import "../styles/bookDetail.css";
@@ -13,19 +13,21 @@ const BookDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const getBook = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const data = await fetchBookById(id);
+      setBook(data || null);
+    } catch (err) {
+      console.error("Error fetching book:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const getBook = async () => {
-      setError("");
-      try {
-        const data = await fetchBookById(id);
-        setBook(data || null);
-      } catch (err) {
-        console.error("Error fetching book:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     getBook();
   }, [id]);
 
@@ -46,8 +48,13 @@ const BookDetailPage = () => {
         message: "Borrow Success",
         description: `You have successfully borrowed "${result.book.title}"!`,
       });
+      await getBook();
     } catch (error) {
       console.error("Failed to borrow book:", error);
+      notification.error({
+        message: "Borrow Failed",
+        description: error.message || "Failed to borrow the book.",
+      });
     }
   };
 

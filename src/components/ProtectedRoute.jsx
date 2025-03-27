@@ -5,10 +5,10 @@ import { AuthContext } from "../context/AuthContext";
 import PropTypes from "prop-types";
 
 const ProtectedRoute = ({ children }) => {
-  const { user, role, loading } = useContext(AuthContext);
+  const { role, loading, isInitializing } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading) {
+  if (loading || isInitializing) {
     return <div>Loading...</div>;
   }
 
@@ -23,7 +23,6 @@ const ProtectedRoute = ({ children }) => {
   const userRoutes = ["/", "/book/:id", "/profile", "/history"];
 
   const isPublicRoute = publicRoutes.includes(location.pathname);
-
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   const isUserRoute = userRoutes.some((route) => {
@@ -34,12 +33,14 @@ const ProtectedRoute = ({ children }) => {
     return location.pathname === route;
   });
 
-  if (!user) {
+  if (!role) {
     if (isPublicRoute) {
       return children;
     }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  console.log("Test Role:", role);
 
   if (role === "ADMIN") {
     if (isUserRoute) {
@@ -53,7 +54,9 @@ const ProtectedRoute = ({ children }) => {
       return <Navigate to="/admin/dashboard" replace />;
     }
     return children;
-  } else if (role === "USER") {
+  }
+
+  if (role === "USER") {
     if (isAdminRoute) {
       notification.error({
         message: "Access Denied",

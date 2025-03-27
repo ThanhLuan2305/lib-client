@@ -11,7 +11,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, role, loading: authLoading } = useContext(AuthContext);
 
-  const renderIcon = (visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />);
+  const renderIcon = (visible) =>
+    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />;
 
   useEffect(() => {
     if (role && !authLoading) {
@@ -48,7 +49,7 @@ const LoginPage = () => {
     <div className="container d-flex justify-content-center align-items-center bg-light pt-4">
       <div
         className="card shadow-lg p-4 rounded-4"
-        style={{ maxWidth: "380px", width: "100%", height: "65vh" }}
+        style={{ maxWidth: "380px", width: "100%" }}
       >
         <h2 className="text-center mb-3 mt-4 fw-bold text-primary">Sign In</h2>
         {error && (
@@ -75,7 +76,7 @@ const LoginPage = () => {
               { required: true, message: "Please enter your password" },
               {
                 pattern:
-                  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
                 message:
                   "Password must contain letters, numbers, and special characters",
               },

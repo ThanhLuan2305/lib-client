@@ -1,5 +1,15 @@
 import { api } from "./ApiFuntions";
 import { handleApiError } from "../utils/apiErrorHandler";
+
+export const getInfo = async () => {
+  try {
+    const response = await api.get(`user/users/info`);
+    return response.data.result;
+  } catch (error) {
+    handleApiError(error, "get info user");
+    return error;
+  }
+};
 // Thay đổi mật khẩu
 export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
   try {

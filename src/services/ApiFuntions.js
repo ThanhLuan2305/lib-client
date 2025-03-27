@@ -36,6 +36,7 @@ const refreshToken = async () => {
 
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userProfile");
+    localStorage.removeItem("userRole");
     removeAuthHeader();
 
     notification.error({
@@ -48,25 +49,28 @@ const refreshToken = async () => {
   }
 };
 
-const skipAuthUrls = ["/auth/refresh", "/auth/login", "/book", "/book/search"];
+const skipAuthUrls = ["/auth/refresh", "/auth/login", "/book", "/book/search", "/account/getRole"];
 
 api.interceptors.request.use(
   function (config) {
-    if (!skipAuthUrls.includes(config.url)) {
+    if (skipAuthUrls.includes(config.url)) {
+      delete config.headers["Authorization"];
+    } else {
       const token = localStorage.getItem("accessToken");
       const auth = token ? `Bearer ${token}` : '';
       config.headers["Authorization"] = auth;
     }
 
-    if (!config.headers.Accept && config.headers["Content-Type"]) {
+    if (!config.headers.Accept) {
       config.headers.Accept = "application/json";
+    }
+    if (!config.headers["Content-Type"]) {
       config.headers["Content-Type"] = "application/json; charset=utf-8";
     }
-    
+
     return config;
   },
   function (error) {
-    // Xử lý lỗi request
     return Promise.reject(error);
   }
 );

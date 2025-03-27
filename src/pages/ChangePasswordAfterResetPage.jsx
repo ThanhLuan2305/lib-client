@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -40,7 +40,7 @@ const ChangePasswordAfterResetPage = () => {
     <div className="container d-flex justify-content-center align-items-center bg-light pt-5">
       <div
         className="card shadow-lg p-4 rounded-4"
-        style={{ maxWidth: "380px", width: "100%", height: "65vh" }}
+        style={{ maxWidth: "380px", width: "100%" }}
       >
         <h2 className="text-center mb-3 mt-4 fw-bold text-primary">
           Change Password

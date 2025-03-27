@@ -43,6 +43,15 @@ const HomePage = ({ searchTerm }) => {
     }
   };
 
+  // Callback để cập nhật stock sau khi mượn thành công
+  const handleBorrowSuccess = (bookId, newStock) => {
+    setBooks((prevBooks) =>
+      prevBooks.map((book) =>
+        book.id === bookId ? { ...book, stock: newStock } : book
+      )
+    );
+  };
+
   return (
     <div className="container mt-4 text-center">
       <CustomCarousel />
@@ -54,15 +63,13 @@ const HomePage = ({ searchTerm }) => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div
-        className="row d-flex flex-wrap justify-content-center"
-      >
+      <div className="row d-flex flex-wrap justify-content-center">
         {books.map((book) => (
           <div
             className="col-md-4 d-flex justify-content-center book-card-container"
             key={book.id}
           >
-            <BookCard book={book} />
+            <BookCard book={book} onBorrowSuccess={handleBorrowSuccess} />
           </div>
         ))}
       </div>

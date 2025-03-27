@@ -1,32 +1,35 @@
 .user-modal .ant-modal {
 	top: 50% !important;
 	transform: translateY(-50%) !important;
-	margin: 0 auto;
-  }
-  
-  .user-modal .ant-modal-body {
-	padding: 24px;
-  }
-  
-  .user-modal .ant-form-item {
+	margin: 2rem auto;
+}
+
+.user-modal .ant-modal-body {
+	max-height: 70vh;
+	overflow-y: auto;
+	overflow-x: auto;
+	padding: 16px;
+}
+
+.user-modal .ant-form-item {
 	margin-bottom: 16px;
-  }
-  
-  .user-modal-switches {
+}
+
+.user-modal-switches {
 	display: flex;
 	gap: 24px;
 	margin-bottom: 16px;
-  }
-  
-  .user-modal-switches .ant-form-item {
+}
+
+.user-modal-switches .ant-form-item {
 	flex: 1;
-  }
-  
-  .user-modal {
+}
+
+.user-modal {
 	position: fixed;
-	top: 0;
+	top: 1.5 rem;
 	left: 0;
 	right: 0;
 	bottom: 0;
 	z-index: 1000;
-  }
+}

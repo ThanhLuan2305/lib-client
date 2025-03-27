@@ -1,57 +1,75 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
-import { removeAuthHeader } from "../services/ApiFuntions";
+import { api, removeAuthHeader } from "../services/ApiFuntions";
 import {
   login as loginAPI,
   logout as logoutAPI,
-  getInfo,
 } from "../services/Authentication";
+import { getInfo } from "../services/User";
+import { getRole } from "../services/Common";
 import PropTypes from "prop-types";
 
 export const AuthContext = createContext();
+
+const normalizeRole = (role) => {
+  return role?.startsWith("ROLE_") ? role.replace("ROLE_", "") : role;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); // Thêm trạng thái khởi tạo
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("userProfile");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      // Lấy role từ storedUser
-      const userRole = parsedUser?.roles?.[0]?.name || null;
-      setRole(userRole);
-    }
-  }, []);
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem("userProfile");
+      const storedRole = localStorage.getItem("userRole");
+      const storedToken = localStorage.getItem("accessToken");
 
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      const storedUser = JSON.parse(localStorage.getItem("userProfile"));
-      setUser(storedUser);
-      const userRole = storedUser?.roles?.[0]?.name || null;
-      setRole(userRole);
-    } catch (error) {
-      console.error("⚠️ Lỗi khi lấy thông tin user:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (storedToken) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+      }
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+      if (storedRole) {
+        setRole(storedRole);
+      }
+
+      setIsInitializing(false); // Hoàn tất khởi tạo
+    };
+
+    initializeAuth();
+  }, []);
 
   const login = async (email, password) => {
     try {
       setLoading(true);
       console.log("🔄 Đang gọi API đăng nhập...");
       const token = await loginAPI(email, password);
-      localStorage.setItem("accessToken", JSON.stringify(token.accessToken));
-      const userInfo = await getInfo();
-      setUser(userInfo);
-      const userRole = userInfo?.roles?.[0]?.name || null;
-      setRole(userRole);
-      localStorage.setItem("userProfile", JSON.stringify(userInfo));
+      const accessToken = token.accessToken;
+
+      if (accessToken) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        localStorage.setItem("accessToken", accessToken);
+      }
+
+      const roles = await getRole();
+      const normalizedRole = roles?.[0] ? normalizeRole(roles[0]) : null;
+      setRole(normalizedRole);
+      localStorage.setItem("userRole", normalizedRole);
+
+      if (normalizedRole === "USER") {
+        const userInfo = await getInfo();
+        setUser(userInfo);
+        localStorage.setItem("userProfile", JSON.stringify(userInfo));
+      } else {
+        setUser(null);
+        localStorage.removeItem("userProfile");
+      }
+
       console.log("✅ API login thành công!");
-      await fetchUserProfile();
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
       throw error;
@@ -63,10 +81,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await logoutAPI();
-
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userProfile");
-      setUser(null);removeAuthHeader();
+      localStorage.removeItem("userRole");
+      setUser(null);
       setRole(null);
       removeAuthHeader();
     } catch (error) {
@@ -75,8 +93,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const contextValue = useMemo(() => {
-    return { user, role, login, logout, loading };
-  }, [user, role, login, logout, loading]);
+    return { user, role, login, logout, loading, isInitializing };
+  }, [user, role, login, logout, loading, isInitializing]);
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

@@ -15,7 +15,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from "recharts";
+  ResponsiveContainer,
+} from "recharts"; // Thêm ResponsiveContainer
 import "../../styles/adminDashboard.css";
 
 const { Header, Sider, Content } = Layout;
@@ -77,7 +78,6 @@ const recentBooksData = [
   },
 ];
 
-// Dữ liệu giả cho thẻ thông tin
 const statsData = {
   totalBooks: 1200,
   totalUsers: 350,
@@ -89,12 +89,10 @@ const AdminDashboardPage = () => {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
-        {/* Main Content */}
         <Content className="content">
           <Container fluid>
-            {/* Thẻ thông tin */}
             <Row className="mb-4">
-              <Col md={3}>
+              <Col xs={12} sm={6} md={3} className="mb-3">
                 <Card className="stat-card">
                   <div className="stat-content">
                     <BookOutlined
@@ -109,7 +107,7 @@ const AdminDashboardPage = () => {
                   </div>
                 </Card>
               </Col>
-              <Col md={3}>
+              <Col xs={12} sm={6} md={3} className="mb-3">
                 <Card className="stat-card">
                   <div className="stat-content">
                     <UserOutlined
@@ -124,7 +122,7 @@ const AdminDashboardPage = () => {
                   </div>
                 </Card>
               </Col>
-              <Col md={3}>
+              <Col xs={12} sm={6} md={3} className="mb-3">
                 <Card className="stat-card">
                   <div className="stat-content">
                     <FileTextOutlined
@@ -139,7 +137,7 @@ const AdminDashboardPage = () => {
                   </div>
                 </Card>
               </Col>
-              <Col md={3}>
+              <Col xs={12} sm={6} md={3} className="mb-3">
                 <Card className="stat-card">
                   <div className="stat-content">
                     <ClockCircleOutlined
@@ -156,30 +154,35 @@ const AdminDashboardPage = () => {
               </Col>
             </Row>
 
-            {/* Biểu đồ và bảng */}
             <Row>
-              {/* Biểu đồ */}
-              <Col md={6} className="mb-4">
+              <Col xs={12} md={6} className="mb-4">
                 <Card title="Borrow Trends" className="chart-card">
-                  <LineChart width={500} height={300} data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="borrows" stroke="#1890ff" />
-                  </LineChart>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="borrows"
+                        stroke="#1890ff"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </Card>
               </Col>
 
               {/* Bảng sách gần đây */}
-              <Col md={6}>
+              <Col xs={12} md={6}>
                 <Card title="Recent Books" className="table-card">
                   <Table
                     columns={recentBooksColumns}
                     dataSource={recentBooksData}
                     pagination={false}
                     size="small"
+                    scroll={{ x: "max-content" }}
                   />
                 </Card>
               </Col>
