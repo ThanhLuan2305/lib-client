@@ -11,46 +11,51 @@ const ChangeEmail = ({ userInfo, setUserInfo }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailForm] = Form.useForm(); // Form cho bước nhập email
+  const [otpForm] = Form.useForm(); // Form cho bước nhập OTP
 
   const handleSendOtp = async (values) => {
-	setLoading(true);
-	try {
-	  await changeEmail(userInfo.email, values.email);
-	  setNewEmail(values.email);
-	  notification.success({
-		message: "OTP Sent",
-		description: `An OTP has been sent to ${values.email}.`,
-	  });
-	  setCurrentStep(1);
-	} catch (error) {
-	  notification.error({
-		message: "Send OTP Failed",
-		description: error.message || "Failed to send OTP.",
-	  });
-	} finally {
-	  setLoading(false);
-	}
+    setLoading(true);
+    try {
+      await changeEmail(userInfo.email, values.email);
+      setNewEmail(values.email);
+      notification.success({
+        message: "OTP Sent",
+        description: `An OTP has been sent to ${values.email}.`,
+      });
+      setCurrentStep(1);
+    } catch (error) {
+      notification.error({
+        message: "Send OTP Failed",
+        description: error.message || "Failed to send OTP.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  
+
   // Xác thực OTP
   const handleVerifyOtp = async (values) => {
-	setLoading(true);
-	try {
-	  await verifyChangeEmail(userInfo.email, newEmail, values.otp);
-	  notification.success({
-		message: "Email Changed",
-		description: "Your email has been changed successfully!",
-	  });
-	  setUserInfo({ ...userInfo, email: newEmail });
-	  setCurrentStep(0);
-	} catch (error) {
-	  notification.error({
-		message: "Change Email Failed",
-		description: error.message || "Failed to change email.",
-	  });
-	} finally {
-	  setLoading(false);
-	}
+    setLoading(true);
+    try {
+      await verifyChangeEmail(userInfo.email, newEmail, values.otp);
+      notification.success({
+        message: "Email Changed",
+        description: "Your email has been changed successfully!",
+      });
+      setUserInfo({ ...userInfo, email: newEmail });
+      setCurrentStep(0);
+      // Reset cả hai form sau khi đổi email thành công
+      emailForm.resetFields();
+      otpForm.resetFields();
+    } catch (error) {
+      notification.error({
+        message: "Change Email Failed",
+        description: error.message || "Failed to change email.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const steps = [
@@ -58,6 +63,7 @@ const ChangeEmail = ({ userInfo, setUserInfo }) => {
       title: "Enter New Email",
       content: (
         <Form
+          form={emailForm} // Gắn instance của form cho bước nhập email
           layout="vertical"
           onFinish={handleSendOtp}
           className="profile-form"
@@ -88,6 +94,7 @@ const ChangeEmail = ({ userInfo, setUserInfo }) => {
       title: "Verify OTP",
       content: (
         <Form
+          form={otpForm} // Gắn instance của form cho bước nhập OTP
           layout="vertical"
           onFinish={handleVerifyOtp}
           className="profile-form"

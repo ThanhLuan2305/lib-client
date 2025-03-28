@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Input, Button, Typography, notification } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { changePassword } from "../services/User";
@@ -8,21 +8,32 @@ import PropTypes from "prop-types";
 const { Title } = Typography;
 
 const ChangePassword = ({ userInfo, setUserInfo }) => {
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm(); // Lấy instance của form
 
   const handleChangePassword = async (values) => {
-	setLoading(true);
-	try {
-	  await changePassword(values.oldPassword, values.newPassword, values.confirmPassword);
-	  notification.success({
-		message: "Password Changed",
-		description: "Your password has been changed successfully!",
-	  });
-	} catch (error) {
-	  console.log("Error in change password page: ", error);
-	} finally {
-	  setLoading(false);
-	}
+    setLoading(true);
+    try {
+      await changePassword(
+        values.oldPassword,
+        values.newPassword,
+        values.confirmPassword
+      );
+      notification.success({
+        message: "Password Changed",
+        description: "Your password has been changed successfully!",
+      });
+      // Reset các field trong form sau khi đổi mật khẩu thành công
+      form.resetFields();
+    } catch (error) {
+      console.log("Error in change password page: ", error);
+      notification.error({
+        message: "Change Password Failed",
+        description: error.message || "Failed to change your password.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,6 +42,7 @@ const ChangePassword = ({ userInfo, setUserInfo }) => {
         Change Password
       </Title>
       <Form
+        form={form} // Gắn instance của form vào Form component
         layout="vertical"
         onFinish={handleChangePassword}
         className="profile-form"

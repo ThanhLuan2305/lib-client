@@ -11,6 +11,8 @@ const ChangePhone = ({ userInfo, setUserInfo }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [newPhone, setNewPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [phoneForm] = Form.useForm(); // Form cho bước nhập số điện thoại
+  const [otpForm] = Form.useForm(); // Form cho bước nhập OTP
 
   // Giả lập API gửi OTP
   const handleSendOtp = async (values) => {
@@ -33,7 +35,6 @@ const ChangePhone = ({ userInfo, setUserInfo }) => {
     }
   };
 
-  // Xác thực OTP
   const handleVerifyOtp = async (values) => {
     setLoading(true);
     try {
@@ -44,6 +45,8 @@ const ChangePhone = ({ userInfo, setUserInfo }) => {
       });
       setUserInfo({ ...userInfo, phoneNumber: newPhone });
       setCurrentStep(0);
+      phoneForm.resetFields();
+      otpForm.resetFields();
     } catch (error) {
       notification.error({
         message: "Change Phone Failed",
@@ -59,6 +62,7 @@ const ChangePhone = ({ userInfo, setUserInfo }) => {
       title: "Enter New Phone Number",
       content: (
         <Form
+          form={phoneForm} // Gắn instance của form cho bước nhập số điện thoại
           layout="vertical"
           onFinish={handleSendOtp}
           className="profile-form"
@@ -92,6 +96,7 @@ const ChangePhone = ({ userInfo, setUserInfo }) => {
       title: "Verify OTP",
       content: (
         <Form
+          form={otpForm}
           layout="vertical"
           onFinish={handleVerifyOtp}
           className="profile-form"

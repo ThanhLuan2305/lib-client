@@ -40,8 +40,6 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  console.log("Test Role:", role);
-
   if (role === "ADMIN") {
     if (isUserRoute) {
       notification.error({

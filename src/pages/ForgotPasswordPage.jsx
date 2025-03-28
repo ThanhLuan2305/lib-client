@@ -171,7 +171,7 @@ const ForgotPasswordPage = () => {
             >
               Verify OTP
             </Button>
-            <div className="text-center mt-3">
+            {/* <div className="text-center mt-3">
               <a
                 href="/"
                 className="resend-link"
@@ -179,7 +179,7 @@ const ForgotPasswordPage = () => {
               >
                 Resend OTP
               </a>
-            </div>
+            </div> */}
           </div>
         )}
 
