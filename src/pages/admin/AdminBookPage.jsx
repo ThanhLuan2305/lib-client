@@ -14,7 +14,7 @@ import {
   getBook,
   importBooks,
 } from "../../services/admin/Book";
-import "../../styles/AdminBooksPage.css";
+import "../../styles/adminBooksPage.css";
 
 const AdminBooksPage = () => {
   const [books, setBooks] = useState([]);
