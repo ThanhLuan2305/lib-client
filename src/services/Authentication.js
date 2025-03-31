@@ -7,11 +7,6 @@ export const login = async (email, password) => {
 	try {
 		const response = await api.post("/auth/login", { email, password });
 
-		notification.success({
-			message: "Logged in",
-			description: "You have successfully logged in.",
-		});
-
 		return response.data.result;
 	} catch (error) {
 		handleApiError(error, "logging in");
@@ -24,7 +19,7 @@ export const logout = async () => {
 	try {
 		await api.post("/auth/logout", {});
 		removeAuthHeader();
-		notification.success({ message: "Logged out", description: "You have successfully logged out." });
+		//notification.success({ message: "Logged out", description: "You have successfully logged out." });
 	} catch (error) {
 		handleApiError(error, "logging out");
 		return error;

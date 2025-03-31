@@ -1,15 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Form, Input, Button, Typography, notification } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { changePassword } from "../services/User";
 import "../styles/changePassword.css";
+import { AuthContext } from "../context/AuthContext";
 import PropTypes from "prop-types";
 
 const { Title } = Typography;
 
 const ChangePassword = ({ userInfo, setUserInfo }) => {
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm(); // Lấy instance của form
+  const { logout } = useContext(AuthContext);
+  const [form] = Form.useForm();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const handleChangePassword = async (values) => {
     setLoading(true);
@@ -23,8 +30,7 @@ const ChangePassword = ({ userInfo, setUserInfo }) => {
         message: "Password Changed",
         description: "Your password has been changed successfully!",
       });
-      // Reset các field trong form sau khi đổi mật khẩu thành công
-      form.resetFields();
+      handleLogout();
     } catch (error) {
       console.log("Error in change password page: ", error);
       notification.error({

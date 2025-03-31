@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
-import { api, removeAuthHeader } from "../services/ApiFuntions";
+import { api } from "../services/ApiFuntions";
 import {
   login as loginAPI,
   logout as logoutAPI,
@@ -86,7 +86,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("userRole");
       setUser(null);
       setRole(null);
-      removeAuthHeader();
     } catch (error) {
       console.error("❌ Lỗi khi logout:", error);
     }

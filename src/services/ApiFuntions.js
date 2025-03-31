@@ -25,7 +25,6 @@ const refreshToken = async () => {
     }
 
     const newAccessToken = response.data.result.accessToken;
-    console.log("✅ Token refreshed:", newAccessToken);
 
     localStorage.setItem("accessToken", newAccessToken);
     api.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;

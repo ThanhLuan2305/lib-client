@@ -27,7 +27,6 @@ const Header = ({ onSearch }) => {
     navigate("/login");
   };
 
-  // Menu items với icon và style đẹp hơn
   const menuItems = [
     {
       key: "1",

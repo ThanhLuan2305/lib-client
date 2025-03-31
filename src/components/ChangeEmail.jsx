@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Form, Input, Button, Typography, notification, Steps } from "antd";
 import { changeEmail, verifyChangeEmail } from "../services/User";
+import { AuthContext } from "../context/AuthContext";
 import "../styles/changeEmail.css";
 import PropTypes from "prop-types";
 
@@ -10,9 +11,15 @@ const { Step } = Steps;
 const ChangeEmail = ({ userInfo, setUserInfo }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [newEmail, setNewEmail] = useState("");
+  const { logout } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
-  const [emailForm] = Form.useForm(); // Form cho bước nhập email
-  const [otpForm] = Form.useForm(); // Form cho bước nhập OTP
+  const [emailForm] = Form.useForm();
+  const [otpForm] = Form.useForm();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const handleSendOtp = async (values) => {
     setLoading(true);
@@ -45,9 +52,7 @@ const ChangeEmail = ({ userInfo, setUserInfo }) => {
       });
       setUserInfo({ ...userInfo, email: newEmail });
       setCurrentStep(0);
-      // Reset cả hai form sau khi đổi email thành công
-      emailForm.resetFields();
-      otpForm.resetFields();
+      handleLogout()
     } catch (error) {
       notification.error({
         message: "Change Email Failed",
