@@ -1,5 +1,5 @@
-import React from "react";
-import { Layout, Card, Table, Typography } from "antd";
+import React, { useState, useEffect } from "react";
+import { Layout, Card, Table, Typography, Spin, Select } from "antd";
 import { Row, Col, Container } from "react-bootstrap";
 import {
   BookOutlined,
@@ -16,20 +16,20 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"; // Thêm ResponsiveContainer
+} from "recharts";
 import "../../styles/adminDashboard.css";
+import {
+  countBookActive,
+  countAllBorrowBook,
+  countBorrowBookActive,
+  countUserActive,
+  getRecentBooks,
+  getBorrowTrend,
+} from "../../services/admin/Statistical";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
-
-const chartData = [
-  { month: "Jan", borrows: 30 },
-  { month: "Feb", borrows: 45 },
-  { month: "Mar", borrows: 60 },
-  { month: "Apr", borrows: 50 },
-  { month: "May", borrows: 70 },
-  { month: "Jun", borrows: 90 },
-];
+const { Option } = Select;
 
 const recentBooksColumns = [
   {
@@ -54,38 +54,99 @@ const recentBooksColumns = [
   },
 ];
 
-const recentBooksData = [
-  {
-    key: "1",
-    isbn: "9780553380163",
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    stock: 5,
-  },
-  {
-    key: "2",
-    isbn: "9780142437247",
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    stock: 3,
-  },
-  {
-    key: "3",
-    isbn: "9780451524935",
-    title: "1984",
-    author: "George Orwell",
-    stock: 8,
-  },
-];
-
-const statsData = {
-  totalBooks: 1200,
-  totalUsers: 350,
-  totalBorrows: 180,
-  activeBorrows: 45,
-};
-
 const AdminDashboardPage = () => {
+  const [stats, setStats] = useState({
+    totalBooks: 0,
+    totalUsers: 0,
+    totalBorrows: 0,
+    activeBorrows: 0,
+  });
+  const [recentBooks, setRecentBooks] = useState([]);
+  const [borrowTrend, setBorrowTrend] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Năm hiện tại
+  const [recentBooksQuantity, setRecentBooksQuantity] = useState(5); // Số lượng sách mặc định
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Lấy dữ liệu thống kê
+        const [totalBooks, totalUsers, totalBorrows, activeBorrows] =
+          await Promise.all([
+            countBookActive(),
+            countUserActive(),
+            countAllBorrowBook(),
+            countBorrowBookActive(),
+          ]);
+
+        setStats({
+          totalBooks,
+          totalUsers,
+          totalBorrows,
+          activeBorrows,
+        });
+
+        // Lấy danh sách sách gần đây
+        const recentBooksData = await getRecentBooks(recentBooksQuantity);
+        const formattedRecentBooks = recentBooksData.map((book, index) => ({
+          key: index.toString(),
+          isbn: book.isbn,
+          title: book.title,
+          author: book.author,
+          stock: book.stock,
+        }));
+        setRecentBooks(formattedRecentBooks);
+
+        // Lấy xu hướng mượn sách
+        const borrowTrendData = await getBorrowTrend(selectedYear);
+        const currentMonth = new Date().getMonth() + 1; // Tháng hiện tại (1-12)
+        const currentYear = new Date().getFullYear();
+        const formattedBorrowTrend = Object.keys(borrowTrendData)
+          .filter((month) => {
+            // Chỉ hiển thị các tháng từ 1 đến tháng hiện tại nếu năm được chọn là năm hiện tại
+            const monthNum = parseInt(month);
+            return selectedYear < currentYear || monthNum <= currentMonth;
+          })
+          .map((month) => ({
+            month: new Date(0, month - 1).toLocaleString("default", {
+              month: "short",
+            }), // Chuyển số tháng thành tên tháng (Jan, Feb, ...)
+            borrows: borrowTrendData[month],
+          }));
+        setBorrowTrend(formattedBorrowTrend);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedYear, recentBooksQuantity]); // Thêm selectedYear và recentBooksQuantity vào dependencies
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Tạo danh sách năm cho dropdown (5 năm gần nhất)
+  const years = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - i
+  );
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Layout>
@@ -101,7 +162,7 @@ const AdminDashboardPage = () => {
                     <div>
                       <Text type="secondary">Total Books</Text>
                       <Title level={3} style={{ color: "#1890ff", margin: 0 }}>
-                        {statsData.totalBooks}
+                        {stats.totalBooks}
                       </Title>
                     </div>
                   </div>
@@ -116,7 +177,7 @@ const AdminDashboardPage = () => {
                     <div>
                       <Text type="secondary">Total Users</Text>
                       <Title level={3} style={{ color: "#52c41a", margin: 0 }}>
-                        {statsData.totalUsers}
+                        {stats.totalUsers}
                       </Title>
                     </div>
                   </div>
@@ -131,7 +192,7 @@ const AdminDashboardPage = () => {
                     <div>
                       <Text type="secondary">Total Borrows</Text>
                       <Title level={3} style={{ color: "#faad14", margin: 0 }}>
-                        {statsData.totalBorrows}
+                        {stats.totalBorrows}
                       </Title>
                     </div>
                   </div>
@@ -146,7 +207,7 @@ const AdminDashboardPage = () => {
                     <div>
                       <Text type="secondary">Active Borrows</Text>
                       <Title level={3} style={{ color: "#ff4d4f", margin: 0 }}>
-                        {statsData.activeBorrows}
+                        {stats.activeBorrows}
                       </Title>
                     </div>
                   </div>
@@ -156,9 +217,33 @@ const AdminDashboardPage = () => {
 
             <Row>
               <Col xs={12} md={6} className="mb-4">
-                <Card title="Borrow Trends" className="chart-card">
+                <Card
+                  title={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>Borrow Trends</span>
+                      <Select
+                        value={selectedYear}
+                        onChange={(value) => setSelectedYear(value)}
+                        style={{ width: 120 }}
+                      >
+                        {years.map((year) => (
+                          <Option key={year} value={year}>
+                            {year}
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                  }
+                  className="chart-card"
+                >
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData}>
+                    <LineChart data={borrowTrend}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -174,12 +259,35 @@ const AdminDashboardPage = () => {
                 </Card>
               </Col>
 
-              {/* Bảng sách gần đây */}
               <Col xs={12} md={6}>
-                <Card title="Recent Books" className="table-card">
+                <Card
+                  title={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>Recent Books</span>
+                      <Select
+                        value={recentBooksQuantity}
+                        onChange={(value) => setRecentBooksQuantity(value)}
+                        style={{ width: 120 }}
+                      >
+                        {[5, 10, 15, 20].map((quantity) => (
+                          <Option key={quantity} value={quantity}>
+                            {quantity}
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                  }
+                  className="table-card"
+                >
                   <Table
                     columns={recentBooksColumns}
-                    dataSource={recentBooksData}
+                    dataSource={recentBooks}
                     pagination={false}
                     size="small"
                     scroll={{ x: "max-content" }}

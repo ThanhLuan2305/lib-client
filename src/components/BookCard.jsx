@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/bookCard.css";
-import { Button, notification } from "antd";
+import { Button, notification, Popconfirm } from "antd"; // Thêm Popconfirm
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { borrowBook } from "../services/User";
 import PropTypes from "prop-types";
@@ -38,6 +38,10 @@ const BookCard = ({ book, onBorrowSuccess }) => {
       }
     } catch (error) {
       console.error("Failed to borrow book:", error);
+      notification.error({
+        message: "Borrow Failed",
+        description: error.message || "Failed to borrow the book.",
+      });
     }
   };
 
@@ -81,15 +85,22 @@ const BookCard = ({ book, onBorrowSuccess }) => {
           </p>
         </div>
       </a>
-      <Button
-        type="primary"
-        block
+      <Popconfirm
+        title={`Are you sure you want to borrow "${book.title}"?`}
+        onConfirm={handleBorrow}
+        okText="Yes"
+        cancelText="No"
         disabled={book.stock <= 0}
-        onClick={handleBorrow}
-        style={{ marginTop: "10px" }}
       >
-        Borrow Book
-      </Button>
+        <Button
+          type="primary"
+          block
+          disabled={book.stock <= 0}
+          style={{ marginTop: "10px" }}
+        >
+          Borrow Book
+        </Button>
+      </Popconfirm>
     </div>
   );
 };

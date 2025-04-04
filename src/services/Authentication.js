@@ -1,7 +1,5 @@
 import { api, removeAuthHeader } from "./ApiFuntions";
 import { handleApiError } from "../utils/apiErrorHandler";
-import { notification } from "antd";
-
 
 export const login = async (email, password) => {
 	try {
@@ -19,7 +17,6 @@ export const logout = async () => {
 	try {
 		await api.post("/auth/logout", {});
 		removeAuthHeader();
-		//notification.success({ message: "Logged out", description: "You have successfully logged out." });
 	} catch (error) {
 		handleApiError(error, "logging out");
 		return error;

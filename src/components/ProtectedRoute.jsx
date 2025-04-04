@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }) => {
     "/register",
     "/forgot-password",
     "/verify-otp",
-    "/change-password-after-reset",
+    "/reset-password",
   ];
 
   const userRoutes = ["/", "/book/:id", "/profile", "/history"];

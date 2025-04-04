@@ -1,89 +1,46 @@
 import React, { useState } from "react";
-import { Form, Input, Button, notification, Checkbox, Steps } from "antd";
-import {
-  MailOutlined,
-  SolutionOutlined,
-  SmileOutlined,
-} from "@ant-design/icons";
+import { Form, Input, Button, notification, Steps } from "antd";
+import { MailOutlined, SmileOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import OtpInput from "react-otp-input";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "antd/dist/reset.css";
 import "../styles/forgetPassword.css";
-import { requestPasswordReset, resetPassword } from "../services/Password";
+import { requestPasswordReset } from "../services/Password";
 
 const ForgotPasswordPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [otp, setOtp] = useState("");
-  const [contactInfo, setContactInfo] = useState("");
-  const [isPhone, setIsPhone] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleRequestOtp = async (values) => {
+  const handleRequestReset = async (values) => {
     setLoading(true);
     try {
-      setContactInfo(values.contactInfo);
-      setIsPhone(values.isPhone || false);
-      const rs = await requestPasswordReset(
-        values.contactInfo,
-        values.isPhone || false
-      );
-      console.log(rs);
+      await requestPasswordReset(values.email);
       notification.success({
-        message: "OTP Sent",
-        description: "An OTP has been sent to your contact info.",
+        message: "Request Sent",
+        description: "Bạn hãy check email để đổi mật khẩu mới.",
       });
       setCurrentStep(1);
+      setTimeout(() => navigate("/login"), 10000);
     } catch (error) {
-      console.log(error);
+      notification.error({
+        message: "Request Failed",
+        description: error.message || "Failed to send reset password request.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async () => {
-    setLoading(true);
-    try {
-      const response = await resetPassword(otp, contactInfo, isPhone);
-      const newPasswordFromApi = response.result;
-      setNewPassword(newPasswordFromApi);
-      notification.success({
-        message: "Password Reset Successful",
-        description: "Your password has been reset successfully!",
-      });
-      setCurrentStep(2);
-      setTimeout(() => navigate("/login"), 360000);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const getStatus = (currentStep) => {
-    if (currentStep === 0) {
-      return "wait";
-    }
-    if (currentStep === 1) {
-      return "process";
-    }
-    return "finish";
-  };
   const steps = [
     {
-      title: "Request OTP",
+      title: "Enter Email",
       status: currentStep === 0 ? "process" : "finish",
       icon: <MailOutlined />,
     },
     {
-      title: "Verify OTP",
-      status: getStatus(currentStep),
-      icon: <SolutionOutlined />,
-    },
-    {
       title: "Done",
-      status: currentStep < 2 ? "wait" : "finish",
+      status: currentStep === 1 ? "finish" : "wait",
       icon: <SmileOutlined />,
     },
   ];
@@ -92,43 +49,27 @@ const ForgotPasswordPage = () => {
     <div className="verify-page">
       <div className="verify-card">
         <div className="text-center mb-4">
-          <h2 className="verify-title">Reset Password</h2>
-          <p className="text-muted">
-            Complete the steps to reset your password
-          </p>
+          <h2 className="verify-title">Forgot Password</h2>
+          <p className="text-muted">Enter your email to reset your password</p>
         </div>
 
         <Steps items={steps} className="mb-5" />
 
         {currentStep === 0 && (
-          <Form layout="vertical" onFinish={handleRequestOtp}>
+          <Form layout="vertical" onFinish={handleRequestReset}>
             <Form.Item
-              label={
-                <span className="input-label">Contact Info (Email/Phone)</span>
-              }
-              name="contactInfo"
+              label={<span className="input-label">Email</span>}
+              name="email"
               rules={[
-                {
-                  required: true,
-                  message: "Please enter your email or phone number",
-                },
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Invalid email format" },
               ]}
             >
               <Input
-                placeholder="Enter your email or phone number"
+                placeholder="Enter your email"
                 size="large"
                 className="custom-input"
               />
-            </Form.Item>
-
-            <Form.Item
-              label={
-                <span className="input-label">Is this a phone number?</span>
-              }
-              name="isPhone"
-              valuePropName="checked"
-            >
-              <Checkbox />
             </Form.Item>
 
             <Button
@@ -139,59 +80,17 @@ const ForgotPasswordPage = () => {
               className="verify-button"
               loading={loading}
             >
-              Send OTP
+              Send Reset Link
             </Button>
           </Form>
         )}
 
         {currentStep === 1 && (
-          <div>
-            <div className="text-center mb-4">
-              <p className="text-muted">
-                An OTP has been sent to {contactInfo}. Please enter it below.
-              </p>
-            </div>
-            <Form.Item label={<span className="input-label">Enter OTP</span>}>
-              <OtpInput
-                value={otp}
-                onChange={setOtp}
-                numInputs={6}
-                renderInput={(props) => <input {...props} />}
-                inputStyle="otp-input"
-                containerStyle="otp-container"
-              />
-            </Form.Item>
-            <Button
-              type="primary"
-              block
-              size="large"
-              className="verify-button"
-              onClick={handleVerifyOtp}
-              loading={loading}
-            >
-              Verify OTP
-            </Button>
-            {/* <div className="text-center mt-3">
-              <a
-                href="/"
-                className="resend-link"
-                onClick={() => handleRequestOtp({ contactInfo, isPhone })}
-              >
-                Resend OTP
-              </a>
-            </div> */}
-          </div>
-        )}
-
-        {currentStep === 2 && (
           <div className="text-center">
-            <h4 className="text-success">Password Reset Complete!</h4>
+            <h4 className="text-success">Request Sent!</h4>
             <p className="text-muted">
-              Your new password is: <strong>{newPassword}</strong>
-            </p>
-            <p className="text-muted">
-              Please use this password to log in. You will be redirected to the
-              login page in 2 minutes.
+             Please check your email to reset your password. You will be redirected to
+              the login page in 10 seconds.
             </p>
             <Button
               type="primary"

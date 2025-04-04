@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchBookById } from "../services/Common";
 import { borrowBook } from "../services/User";
-import { Button, notification } from "antd";
+import { Button, notification, Popconfirm } from "antd"; // Thêm Popconfirm
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import "../styles/bookDetail.css";
 
@@ -113,15 +113,22 @@ const BookDetailPage = () => {
               {book.stock > 0 ? `Available: ${book.stock}` : "Out of Stock"}
             </p>
 
-            <Button
-              type="primary"
-              size="large"
+            <Popconfirm
+              title={`Are you sure you want to borrow "${book.title}"?`}
+              onConfirm={handleBorrow}
+              okText="Yes"
+              cancelText="No"
               disabled={book.stock <= 0}
-              onClick={handleBorrow}
-              style={{ marginTop: "20px" }}
             >
-              Borrow Book
-            </Button>
+              <Button
+                type="primary"
+                size="large"
+                disabled={book.stock <= 0}
+                style={{ marginTop: "20px" }}
+              >
+                Borrow Book
+              </Button>
+            </Popconfirm>
           </div>
         </div>
       </div>

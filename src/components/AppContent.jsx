@@ -9,7 +9,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import VerifyOTPPage from "../pages/VerifyOTPPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
-import ChangePasswordAfterResetPage from "../pages/ChangePasswordAfterResetPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ProfilePage from "../pages/ProfilePage";
 import HistoryPage from "../pages/HistoryPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
@@ -68,9 +68,7 @@ const AppContent = ({ searchTerm, setSearchTerm, maintenanceMode, pathname }) =>
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
-            <Route
-              path="/change-password-after-reset"
-              element={<ChangePasswordAfterResetPage />}
+            <Route path="/reset-password" element={<ResetPasswordPage />}
             />
           </Route>
 
