@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { filterBook, searchBook, fetchBooks } from "../services/Common";
+import { useNavigate } from "react-router-dom";
 import BookCard from "../components/BookCard";
 import CustomCarousel from "../components/Carousel";
 import Pagination from "../components/Pagination";
 import BookFilter from "../components/BookFilter";
 import PropTypes from "prop-types";
+import { MessageOutlined } from "@ant-design/icons";
 import "../styles/home.css";
 
 const HomePage = ({ searchTerm }) => {
@@ -14,6 +16,7 @@ const HomePage = ({ searchTerm }) => {
   const [filters, setFilters] = useState({});
   const [error, setError] = useState("");
   const pageSize = 6;
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadBooks();
@@ -52,6 +55,10 @@ const HomePage = ({ searchTerm }) => {
     );
   };
 
+  const handleOpenChat = () => {
+    navigate("/chat");
+  };
+
   return (
     <div className="container mt-4 text-center">
       <CustomCarousel />
@@ -82,6 +89,10 @@ const HomePage = ({ searchTerm }) => {
           pageSize={pageSize}
         />
       </div>
+
+      <button className="chat-button" onClick={handleOpenChat}>
+        <MessageOutlined style={{ fontSize: "24px" }} />
+      </button>
     </div>
   );
 };

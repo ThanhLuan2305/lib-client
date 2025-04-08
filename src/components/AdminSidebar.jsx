@@ -6,6 +6,7 @@ import {
   BookOutlined,
   HistoryOutlined,
   SettingOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
 import "../styles/adminSidebar.css";
@@ -13,7 +14,9 @@ import "../styles/adminSidebar.css";
 const AdminSidebar = () => {
   return (
     <div className="admin-sidebar">
-	  <div className="admin-sidebar__logo"><h2>Menu</h2></div>
+      <div className="admin-sidebar__logo">
+        <h2>Menu</h2>
+      </div>
       <Menu
         mode="inline"
         defaultSelectedKeys={["dashboard"]}
@@ -33,6 +36,9 @@ const AdminSidebar = () => {
         </Menu.Item>
         <Menu.Item key="maintenance-mode" icon={<SettingOutlined />}>
           <NavLink to="/admin/maintenance-mode">Maintenance Mode</NavLink>
+        </Menu.Item>
+        <Menu.Item key="chat-with-users" icon={<MessageOutlined />}>
+          <NavLink to="/admin/chat">Chat with Users</NavLink>
         </Menu.Item>
       </Menu>
     </div>

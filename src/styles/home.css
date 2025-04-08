@@ -27,6 +27,33 @@
 		0 5px 10px rgba(0, 0, 0, 0.15);
 }
 
+.chat-button {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	width: 60px;
+	height: 60px;
+	background-color: #1890ff;
+	border: none;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	transition: all 0.3s;
+	z-index: 1000;
+}
+
+.chat-button:hover {
+	background-color: #40a9ff;
+	transform: scale(1.1);
+}
+
+.chat-button .anticon {
+	color: #fff;
+}
+
 @media (min-width: 1200px) {
 	.book-card-container {
 		width: 31%;

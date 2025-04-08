@@ -17,12 +17,19 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminBookPage from "../pages/admin/AdminBookPage";
 import MaintenanceModePage from "../pages/admin/MaintenanceModePage";
 import ActivityLogPage from "../pages/admin/ActivityLogPage";
+import UserChatPage from "../pages/UserChatPage";
+import AdminChatPage from "../pages/admin/AdminChatPage";
 import ProtectedRoute from "./ProtectedRoute";
 import MaintenanceMode from "../pages/MaintenanceMode";
 import MaintenanceGuard from "./MaintenanceGuard";
 import PropTypes from "prop-types";
 
-const AppContent = ({ searchTerm, setSearchTerm, maintenanceMode, pathname }) => {
+const AppContent = ({
+  searchTerm,
+  setSearchTerm,
+  maintenanceMode,
+  pathname,
+}) => {
   return (
     <>
       {maintenanceMode &&
@@ -35,7 +42,10 @@ const AppContent = ({ searchTerm, setSearchTerm, maintenanceMode, pathname }) =>
           {/* Route cho user */}
           <Route
             element={
-              <MaintenanceGuard maintenanceMode={maintenanceMode} pathname={pathname}>
+              <MaintenanceGuard
+                maintenanceMode={maintenanceMode}
+                pathname={pathname}
+              >
                 <>
                   <Header onSearch={setSearchTerm} />
                   <main className="container">
@@ -64,18 +74,28 @@ const AppContent = ({ searchTerm, setSearchTerm, maintenanceMode, pathname }) =>
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <UserChatPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />}
-            />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
           {/* Route cho admin */}
           <Route
             element={
-              <MaintenanceGuard maintenanceMode={maintenanceMode} pathname={pathname}>
+              <MaintenanceGuard
+                maintenanceMode={maintenanceMode}
+                pathname={pathname}
+              >
                 <AdminLayout />
               </MaintenanceGuard>
             }
@@ -117,6 +137,14 @@ const AppContent = ({ searchTerm, setSearchTerm, maintenanceMode, pathname }) =>
               element={
                 <ProtectedRoute>
                   <MaintenanceModePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/chat"
+              element={
+                <ProtectedRoute>
+                  <AdminChatPage /> {/* Thêm route cho AdminChatPage */}
                 </ProtectedRoute>
               }
             />
