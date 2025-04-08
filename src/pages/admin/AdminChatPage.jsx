@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, List, Avatar, Spin, Button, Input, message } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, SendOutlined } from "@ant-design/icons";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { getPrivateMessages, sendPrivateMessage } from "../../services/Chat";
@@ -13,18 +13,16 @@ const timeAgo = (date) => {
   const now = new Date();
   const past = new Date(date);
   const secondsAgo = Math.floor((now - past) / 1000);
-
-  if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
+  if (secondsAgo < 60) return `${secondsAgo}s ago`;
   const minutesAgo = Math.floor(secondsAgo / 60);
-  if (minutesAgo < 60) return `${minutesAgo} minutes ago`;
+  if (minutesAgo < 60) return `${minutesAgo}m ago`;
   const hoursAgo = Math.floor(minutesAgo / 60);
-  if (hoursAgo < 24) return `${hoursAgo} hours ago`;
+  if (hoursAgo < 24) return `${hoursAgo}h ago`;
   const daysAgo = Math.floor(hoursAgo / 24);
-  if (daysAgo < 30) return `${daysAgo} days ago`;
+  if (daysAgo < 30) return `${daysAgo}d ago`;
   const monthsAgo = Math.floor(daysAgo / 30);
-  if (monthsAgo < 12) return `${monthsAgo} months ago`;
-  const yearsAgo = Math.floor(monthsAgo / 12);
-  return `${yearsAgo} years ago`;
+  if (monthsAgo < 12) return `${monthsAgo}mo ago`;
+  return `${Math.floor(monthsAgo / 12)}y ago`;
 };
 
 const AdminChatPage = () => {
@@ -37,13 +35,12 @@ const AdminChatPage = () => {
   const [error, setError] = useState(null);
   const [stompClient, setStompClient] = useState(null);
   const messagesEndRef = useRef(null);
+  const chatMessagesRef = useRef(null); // Thêm ref cho khung chat
   const selectedUserIdRef = useRef(null);
-
   const adminId = 1;
 
   useEffect(() => {
     selectedUserIdRef.current = selectedUserId;
-    console.log("Updated selectedUserIdRef to:", selectedUserIdRef.current);
   }, [selectedUserId]);
 
   const normalizeTimestamp = (timestamp) => {
@@ -51,10 +48,7 @@ const AdminChatPage = () => {
     if (typeof timestamp === "string") {
       return timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`;
     }
-    if (timestamp instanceof Object && timestamp.toString) {
-      return timestamp.toString();
-    }
-    return timestamp;
+    return timestamp.toString();
   };
 
   const sortMessagesByTime = (msgs) => {
@@ -70,11 +64,11 @@ const AdminChatPage = () => {
     setError(null);
     try {
       const userIds = await getUsersChattingWithAdmin();
-      setUsers([...new Set(userIds)] || []);
-    } catch (error) {
-      console.error("Failed to load users:", error);
+      setUsers(Array.from(new Set(userIds)));
+    } catch (err) {
+      console.error("Failed to load users:", err);
       setError("Failed to load users. Please try again.");
-      message.error("Failed to load users. Please try again.");
+      message.error("Failed to load users.");
     } finally {
       setLoading(false);
     }
@@ -89,16 +83,16 @@ const AdminChatPage = () => {
         ...msg,
         timestamp: normalizeTimestamp(msg.timestamp),
       }));
-      // Kết hợp tin nhắn từ API và tin nhắn từ pendingMessages
       const pendingForUser = pendingMessages.filter(
         (msg) =>
           (msg.senderId === userId && msg.receiverId === adminId) ||
           (msg.senderId === adminId && msg.receiverId === userId)
       );
-      setMessages(
-        sortMessagesByTime([...normalizedMessages, ...pendingForUser])
+      const combinedMessages = [...normalizedMessages, ...pendingForUser];
+      const uniqueMessages = Array.from(
+        new Map(combinedMessages.map((msg) => [msg.id, msg])).values()
       );
-      // Xóa tin nhắn đã hiển thị khỏi pendingMessages
+      setMessages(sortMessagesByTime(uniqueMessages));
       setPendingMessages((prev) =>
         prev.filter(
           (msg) =>
@@ -108,16 +102,52 @@ const AdminChatPage = () => {
             )
         )
       );
-    } catch (error) {
-      console.error("Failed to load messages:", error);
+    } catch (err) {
+      console.error("Failed to load messages:", err);
       setError("Failed to load messages. Please try again.");
-      message.error("Failed to load messages. Please try again.");
+      message.error("Failed to load messages.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Kết nối WebSocket
+  const moveUserToTop = (userId) => {
+    setUsers((prev) => {
+      const filteredUsers = prev.filter((id) => id !== userId);
+      return [userId, ...filteredUsers];
+    });
+  };
+
+  const updateMessages = (currentMessages, normalizedMsg) => {
+    const messageExists = currentMessages.some(
+      (msg) => msg.id === normalizedMsg.id
+    );
+    if (!messageExists) {
+      return sortMessagesByTime([...currentMessages, normalizedMsg]);
+    }
+    return currentMessages;
+  };
+
+  const handleNewUserMessage = (senderId) => {
+    if (!users.includes(senderId) && senderId !== adminId) {
+      setUsers((prevUsers) => Array.from(new Set([senderId, ...prevUsers])));
+    } else if (senderId !== adminId) {
+      moveUserToTop(senderId);
+    }
+  };
+
+  const handleMessageUpdate = (senderId, normalizedMsg) => {
+    if (selectedUserIdRef.current === senderId) {
+      setMessages((prevMessages) =>
+        updateMessages(prevMessages, normalizedMsg)
+      );
+    } else {
+      setPendingMessages((prevPending) =>
+        updateMessages(prevPending, normalizedMsg)
+      );
+    }
+  };
+
   const connectWebSocket = () => {
     const socket = new SockJS("http://localhost:8080/chat");
     const client = Stomp.over(socket);
@@ -130,68 +160,23 @@ const AdminChatPage = () => {
     client.connect(
       headers,
       () => {
-        console.log("WebSocket connected successfully for Admin");
-        client.subscribe(`/queue/private/admin`, (message) => {
-          console.log(
-            `Received message on /queue/private/admin:`,
-            message.body
-          );
-          const newMsg = JSON.parse(message.body);
+        client.subscribe(`/queue/private/admin`, (msg) => {
+          const newMsg = JSON.parse(msg.body);
           const normalizedMsg = {
             ...newMsg,
-            senderId: parseInt(newMsg.senderId), // Chuyển senderId thành number
+            senderId: parseInt(newMsg.senderId),
             timestamp: normalizeTimestamp(newMsg.timestamp),
           };
           const senderId = parseInt(newMsg.senderId);
-          const currentSelectedUserId = selectedUserIdRef.current; // Sử dụng giá trị mới nhất từ useRef
-          console.log(
-            `Comparing selectedUserId: ${currentSelectedUserId} with senderId: ${senderId}`
-          );
 
-          // Cập nhật danh sách users nếu senderId chưa có
-          if (!users.includes(senderId) && senderId !== adminId) {
-            setUsers((prev) => [...new Set([...prev, senderId])]);
-          }
-
-          // Cập nhật tin nhắn nếu đang xem User đó
-          console.log(
-            `Checking if message is for selected user: ${currentSelectedUserId} and senderId: ${senderId}`
-          );
-          if (currentSelectedUserId === senderId) {
-            setMessages((prev) => {
-              if (prev.some((msg) => msg.id === normalizedMsg.id)) {
-                console.log(
-                  "Message already exists, skipping:",
-                  normalizedMsg.id
-                );
-                return prev;
-              }
-              console.log("Adding new message:", normalizedMsg);
-              return sortMessagesByTime([...prev, normalizedMsg]);
-            });
-          } else {
-            // Lưu tin nhắn vào pendingMessages nếu không phải User đang chọn
-            console.log(
-              "Message received but not for selected user. Selected:",
-              currentSelectedUserId,
-              "Sender:",
-              senderId
-            );
-            setPendingMessages((prev) => {
-              if (prev.some((msg) => msg.id === normalizedMsg.id)) {
-                return prev;
-              }
-              return sortMessagesByTime([...prev, normalizedMsg]);
-            });
-          }
+          handleNewUserMessage(senderId);
+          handleMessageUpdate(senderId, normalizedMsg);
         });
       },
-      (error) => {
-        console.error("WebSocket connection error:", error);
+      (err) => {
+        console.error("WebSocket connection error:", err);
         setError("Failed to connect to WebSocket. Please refresh the page.");
-        message.error(
-          "Failed to connect to WebSocket. Please refresh the page."
-        );
+        message.error("Failed to connect to WebSocket.");
       }
     );
     setStompClient(client);
@@ -199,29 +184,23 @@ const AdminChatPage = () => {
 
   // Cuộn xuống tin nhắn mới nhất
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
     fetchUsers();
     connectWebSocket();
     return () => {
-      if (stompClient) {
-        console.log("Disconnecting WebSocket");
-        stompClient.disconnect();
-      }
+      if (stompClient) stompClient.disconnect();
     };
   }, []);
 
-  // Kiểm tra pendingMessages khi selectedUserId thay đổi
   useEffect(() => {
-    if (selectedUserId) {
-      console.log("Selected user changed to:", selectedUserId);
-      fetchMessages(selectedUserId);
-    }
+    if (selectedUserId) fetchMessages(selectedUserId);
   }, [selectedUserId]);
 
-  // Gửi tin nhắn
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedUserId) return;
 
@@ -252,162 +231,162 @@ const AdminChatPage = () => {
           prev.map((msg) => (msg.id === tempMessage.id ? sentMessage : msg))
         )
       );
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      message.error("Failed to send message. Please try again.");
+      moveUserToTop(selectedUserId);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      message.error("Failed to send message.");
       setMessages((prev) =>
         sortMessagesByTime(prev.filter((msg) => msg.id !== tempMessage.id))
       );
     }
   };
 
-  // Xử lý khi nhấn Enter để gửi tin nhắn
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
+    if (e.key === "Enter") handleSendMessage();
   };
 
-  // Retry khi có lỗi
   const handleRetry = () => {
-    if (selectedUserId) {
-      fetchMessages(selectedUserId);
-    } else {
-      fetchUsers();
-    }
+    if (selectedUserId) fetchMessages(selectedUserId);
+    else fetchUsers();
   };
 
-  // Xử lý chọn User
-  const handleSelectUser = (userId) => {
-    console.log("Selecting user:", userId);
-    setSelectedUserId(userId);
-    fetchMessages(userId); // Gọi ngay fetchMessages để tránh delay
+  const renderUserList = () => {
+    if (loading && !users.length) return <Spin className="chat-loading" />;
+    if (error) {
+      return (
+        <div className="chat-empty">
+          <p className="error-text">{error}</p>
+          <Button type="primary" onClick={handleRetry} className="retry-btn">
+            Retry
+          </Button>
+        </div>
+      );
+    }
+    if (!users.length) {
+      return (
+        <div className="chat-empty">
+          <p>No users have messaged yet</p>
+        </div>
+      );
+    }
+    return (
+      <List
+        dataSource={users}
+        renderItem={(userId) => (
+          <List.Item
+            className={`chat-room-item ${
+              selectedUserId === userId ? "selected" : ""
+            }`}
+            onClick={() => setSelectedUserId(userId)}
+          >
+            <List.Item.Meta
+              avatar={
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: "#1890ff" }}
+                />
+              }
+              title={<span className="chat-room-title">User {userId}</span>}
+            />
+          </List.Item>
+        )}
+      />
+    );
+  };
+
+  const renderChatContent = () => {
+    if (!selectedUserId) {
+      return (
+        <div className="chat-empty">
+          <h3>Select a user to start messaging</h3>
+        </div>
+      );
+    }
+    if (loading) return <Spin className="chat-loading" />;
+    if (error) {
+      return (
+        <div className="chat-empty">
+          <p className="error-text">{error}</p>
+          <Button type="primary" onClick={handleRetry} className="retry-btn">
+            Retry
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <>
+        <div className="chat-header">
+          <h3>Chat with User {selectedUserId}</h3>
+        </div>
+        <div className="chat-messages" ref={chatMessagesRef}>
+          {messages.map((msg, index) => (
+            <div
+              key={msg.id || index}
+              className={`chat-message ${
+                msg.senderId === adminId ? "sent" : "received"
+              }`}
+            >
+              {msg.senderId !== adminId && (
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: "#f56a00", marginRight: "8px" }}
+                />
+              )}
+              <div className="chat-message-content">
+                <div className="message-bubble">
+                  <span>{msg.content}</span>
+                </div>
+                <span className="chat-message-timestamp">
+                  {msg.messageType === "TEXT"
+                    ? timeAgo(normalizeTimestamp(msg.timestamp))
+                    : msg.messageType}
+                </span>
+              </div>
+              {msg.senderId === adminId && (
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: "#1890ff", marginLeft: "8px" }}
+                />
+              )}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        <div className="chat-input">
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type a message..."
+            className="message-input"
+            suffix={
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+              />
+            }
+          />
+        </div>
+      </>
+    );
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Layout>
-        <Sider width={300}>
-          <div className="chat-sider">
-            <h3 className="chat-sider-title">Users</h3>
-            {loading && !users.length ? (
-              <Spin className="chat-loading" />
-            ) : error ? (
-              <div className="chat-empty">
-                <h3>{error}</h3>
-                <Button type="primary" onClick={handleRetry}>
-                  Retry
-                </Button>
-              </div>
-            ) : users.length === 0 ? (
-              <div className="chat-empty">
-                <h3>No users have messaged yet</h3>
-              </div>
-            ) : (
-              <List
-                dataSource={users}
-                renderItem={(userId) => (
-                  <List.Item
-                    className={`chat-room-item ${
-                      selectedUserId === userId ? "selected" : ""
-                    }`}
-                    onClick={() => handleSelectUser(userId)}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar
-                          icon={<UserOutlined />}
-                          style={{ backgroundColor: "#1890ff" }}
-                        />
-                      }
-                      title={
-                        <span className="chat-room-title">User {userId}</span>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            )}
-          </div>
-        </Sider>
-        <Content className="chat-content">
-          {selectedUserId ? (
-            loading ? (
-              <Spin className="chat-loading" />
-            ) : error ? (
-              <div className="chat-empty">
-                <h3>{error}</h3>
-                <Button type="primary" onClick={handleRetry}>
-                  Retry
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="chat-header">
-                  <h3>Chat with User {selectedUserId}</h3>
-                </div>
-                <div className="chat-messages">
-                  {messages.map((msg, index) => (
-                    <div
-                      key={msg.id || index}
-                      className={`chat-message ${
-                        msg.senderId === adminId ? "sent" : "received"
-                      }`}
-                    >
-                      {msg.senderId !== adminId && (
-                        <Avatar
-                          icon={<UserOutlined />}
-                          style={{
-                            backgroundColor: "#f56a00",
-                            marginRight: "8px",
-                          }}
-                        />
-                      )}
-                      <div className="chat-message-content">
-                        <span>{msg.content}</span>
-                        <span className="chat-message-timestamp">
-                          {msg.messageType === "TEXT"
-                            ? timeAgo(normalizeTimestamp(msg.timestamp))
-                            : msg.messageType}
-                        </span>
-                      </div>
-                      {msg.senderId === adminId && (
-                        <Avatar
-                          icon={<UserOutlined />}
-                          style={{
-                            backgroundColor: "#1890ff",
-                            marginLeft: "8px",
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </div>
-                <div
-                  className="chat-input"
-                  style={{ display: "flex", gap: "8px", padding: "16px" }}
-                >
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type a message..."
-                    style={{ flex: 1 }}
-                  />
-                  <Button type="primary" onClick={handleSendMessage}>
-                    Send
-                  </Button>
-                </div>
-              </>
-            )
-          ) : (
-            <div className="chat-empty">
-              <h3>Select a user to start messaging</h3>
-            </div>
-          )}
-        </Content>
-      </Layout>
+    <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+      <Sider
+        width={300}
+        style={{ background: "#fff", boxShadow: "2px 0 8px rgba(0,0,0,0.1)" }}
+      >
+        <div className="chat-sider">
+          <h3 className="chat-sider-title">Users</h3>
+          {renderUserList()}
+        </div>
+      </Sider>
+      <Content style={{ padding: "16px" }}>
+        <div className="chat-container">{renderChatContent()}</div>
+      </Content>
     </Layout>
   );
 };

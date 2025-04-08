@@ -137,7 +137,6 @@ const UserModal = ({ open, onCancel, onOk, initialValues, isEdit }) => {
         >
           <Select mode="multiple" placeholder="Select roles">
             <Option value="USER">User</Option>
-            <Option value="ADMIN">Admin</Option>
           </Select>
         </Form.Item>
         <div className="user-modal-switches">

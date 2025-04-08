@@ -5,6 +5,7 @@ import { changePassword } from "../services/User";
 import "../styles/changePassword.css";
 import { AuthContext } from "../context/AuthContext";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const ChangePassword = ({ userInfo, setUserInfo }) => {
   const [loading, setLoading] = useState(false);
   const { logout } = useContext(AuthContext);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
