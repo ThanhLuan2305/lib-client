@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, List, Avatar, Spin, Button, Input, message } from "antd";
 import { UserOutlined, SendOutlined } from "@ant-design/icons";
-import SockJS from "sockjs-client";
-import { Stomp } from "@stomp/stompjs";
 import { getPrivateMessages, sendPrivateMessage } from "../../services/Chat";
 import { getUsersChattingWithAdmin } from "../../services/admin/Chat";
 import "../../styles/adminChat.css";
@@ -33,11 +31,11 @@ const AdminChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [stompClient, setStompClient] = useState(null);
+  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
-  const chatMessagesRef = useRef(null); // Thêm ref cho khung chat
+  const chatMessagesRef = useRef(null);
   const selectedUserIdRef = useRef(null);
-  const adminId = 1;
+  const adminId = 1; // Giả định adminId là 1, có thể lấy từ AuthContext nếu cần
 
   useEffect(() => {
     selectedUserIdRef.current = selectedUserId;
@@ -45,9 +43,21 @@ const AdminChatPage = () => {
 
   const normalizeTimestamp = (timestamp) => {
     if (!timestamp) return null;
+
+    // Nếu timestamp là số (epoch time in seconds), chuyển thành milliseconds
+    if (typeof timestamp === "number") {
+      // Kiểm tra nếu timestamp nhỏ hơn 10^12, giả định là giây, nhân 1000 để thành milliseconds
+      if (timestamp < 10 ** 12) {
+        timestamp *= 1000;
+      }
+      return new Date(timestamp).toISOString();
+    }
+
+    // Nếu timestamp là chuỗi, kiểm tra định dạng
     if (typeof timestamp === "string") {
       return timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`;
     }
+
     return timestamp.toString();
   };
 
@@ -119,13 +129,16 @@ const AdminChatPage = () => {
   };
 
   const updateMessages = (currentMessages, normalizedMsg) => {
-    const messageExists = currentMessages.some(
+    const messageIndex = currentMessages.findIndex(
       (msg) => msg.id === normalizedMsg.id
     );
-    if (!messageExists) {
+    if (messageIndex === -1) {
       return sortMessagesByTime([...currentMessages, normalizedMsg]);
+    } else {
+      const updatedMessages = [...currentMessages];
+      updatedMessages[messageIndex] = normalizedMsg;
+      return sortMessagesByTime(updatedMessages);
     }
-    return currentMessages;
   };
 
   const handleNewUserMessage = (senderId) => {
@@ -149,40 +162,55 @@ const AdminChatPage = () => {
   };
 
   const connectWebSocket = () => {
-    const socket = new SockJS("http://localhost:8080/chat");
-    const client = Stomp.over(socket);
-    const token = localStorage.getItem("token");
-    const headers = {
-      Authorization: token ? `Bearer ${token}` : "",
-      "user-id": "1",
+    if (!adminId || isNaN(adminId)) {
+      setError("Invalid admin ID. Please log in again.");
+      message.error("Authentication required.");
+      return;
+    }
+
+    const ws = new WebSocket(`ws://localhost:8080/chat?userId=${adminId}`);
+
+    ws.onopen = () => {
+      console.log("WebSocket connected successfully for Admin", adminId);
     };
 
-    client.connect(
-      headers,
-      () => {
-        client.subscribe(`/queue/private/admin`, (msg) => {
-          const newMsg = JSON.parse(msg.body);
-          const normalizedMsg = {
-            ...newMsg,
-            senderId: parseInt(newMsg.senderId),
-            timestamp: normalizeTimestamp(newMsg.timestamp),
-          };
-          const senderId = parseInt(newMsg.senderId);
-
-          handleNewUserMessage(senderId);
-          handleMessageUpdate(senderId, normalizedMsg);
-        });
-      },
-      (err) => {
-        console.error("WebSocket connection error:", err);
-        setError("Failed to connect to WebSocket. Please refresh the page.");
-        message.error("Failed to connect to WebSocket.");
+    ws.onmessage = (event) => {
+      const newMsg = JSON.parse(event.data);
+      if (newMsg.error) {
+        console.error("WebSocket error:", newMsg.error);
+        setError(newMsg.error);
+        ws.close();
+        return;
       }
-    );
-    setStompClient(client);
+      if (newMsg.status === "connected") {
+        console.log("Connected with userId:", newMsg.userId);
+        return;
+      }
+      const normalizedMsg = {
+        ...newMsg,
+        senderId: parseInt(newMsg.senderId),
+        timestamp: normalizeTimestamp(newMsg.timestamp),
+      };
+      const senderId = parseInt(newMsg.senderId);
+
+      handleNewUserMessage(senderId);
+      handleMessageUpdate(senderId, normalizedMsg);
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      setError("Failed to connect to WebSocket. Please refresh the page.");
+      message.error("Failed to connect to WebSocket.");
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      setError("WebSocket connection closed.");
+    };
+
+    setSocket(ws);
   };
 
-  // Cuộn xuống tin nhắn mới nhất
   useEffect(() => {
     if (chatMessagesRef.current) {
       chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
@@ -193,7 +221,7 @@ const AdminChatPage = () => {
     fetchUsers();
     connectWebSocket();
     return () => {
-      if (stompClient) stompClient.disconnect();
+      if (socket) socket.close();
     };
   }, []);
 
@@ -208,12 +236,12 @@ const AdminChatPage = () => {
       senderId: adminId,
       receiverId: selectedUserId,
       content: newMessage,
-      messageType: "TEXT",
     };
 
+    const tempId = `temp-${Date.now()}`;
     const tempMessage = {
       ...messageRequest,
-      id: `temp-${Date.now()}`,
+      id: tempId,
       timestamp: new Date().toISOString(),
     };
 
@@ -228,7 +256,7 @@ const AdminChatPage = () => {
       };
       setMessages((prev) =>
         sortMessagesByTime(
-          prev.map((msg) => (msg.id === tempMessage.id ? sentMessage : msg))
+          prev.map((msg) => (msg.id === tempId ? sentMessage : msg))
         )
       );
       moveUserToTop(selectedUserId);
@@ -236,7 +264,7 @@ const AdminChatPage = () => {
       console.error("Failed to send message:", err);
       message.error("Failed to send message.");
       setMessages((prev) =>
-        sortMessagesByTime(prev.filter((msg) => msg.id !== tempMessage.id))
+        sortMessagesByTime(prev.filter((msg) => msg.id !== tempId))
       );
     }
   };
@@ -319,9 +347,9 @@ const AdminChatPage = () => {
           <h3>Chat with User {selectedUserId}</h3>
         </div>
         <div className="chat-messages" ref={chatMessagesRef}>
-          {messages.map((msg, index) => (
+          {messages.map((msg) => (
             <div
-              key={msg.id || index}
+              key={msg.id}
               className={`chat-message ${
                 msg.senderId === adminId ? "sent" : "received"
               }`}
@@ -337,9 +365,7 @@ const AdminChatPage = () => {
                   <span>{msg.content}</span>
                 </div>
                 <span className="chat-message-timestamp">
-                  {msg.messageType === "TEXT"
-                    ? timeAgo(normalizeTimestamp(msg.timestamp))
-                    : msg.messageType}
+                  {timeAgo(normalizeTimestamp(msg.timestamp))}
                 </span>
               </div>
               {msg.senderId === adminId && (

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, Spin, Avatar, Input, Button, message } from "antd";
 import { UserOutlined, SendOutlined } from "@ant-design/icons";
-import SockJS from "sockjs-client";
-import { Stomp } from "@stomp/stompjs";
 import { sendPrivateMessage, getPrivateMessages } from "../services/Chat";
 import "../styles/userChat.css";
 
@@ -29,9 +27,13 @@ const UserChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [stompClient, setStompClient] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [recentlySentMessageIds, setRecentlySentMessageIds] = useState(
+    new Set()
+  );
   const messagesEndRef = useRef(null);
   const chatMessagesRef = useRef(null);
+  const processedMessageIds = useRef(new Set()); // Để theo dõi các tin nhắn đã xử lý
 
   const userProfile = JSON.parse(localStorage.getItem("userProfile")) || {};
   const currentUserId = userProfile.id || 0;
@@ -39,9 +41,18 @@ const UserChatPage = () => {
 
   const normalizeTimestamp = (timestamp) => {
     if (!timestamp) return null;
+
+    if (typeof timestamp === "number") {
+      if (timestamp < 10 ** 12) {
+        timestamp *= 1000;
+      }
+      return new Date(timestamp).toISOString();
+    }
+
     if (typeof timestamp === "string") {
       return timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`;
     }
+
     return timestamp.toString();
   };
 
@@ -53,19 +64,61 @@ const UserChatPage = () => {
     });
   };
 
-  const updateMessagesWithNew = (prevMessages, newMsg) => {
-    if (prevMessages.some((msg) => msg.id === newMsg.id)) {
-      return prevMessages;
+  // Sửa lại phương thức xử lý loại bỏ tin nhắn trùng lặp
+  const getUniqueMessages = (messages) => {
+    const uniqueMessages = [];
+    const seenIds = new Set();
+
+    // Sắp xếp trước để đảm bảo lấy tin nhắn mới nhất
+    const sortedMessages = sortMessagesByTime(messages);
+
+    // Duyệt từ tin nhắn cũ đến mới nhất
+    for (const msg of sortedMessages) {
+      if (!seenIds.has(msg.id)) {
+        seenIds.add(msg.id);
+        uniqueMessages.push({
+          ...msg,
+          uniqueId: `${msg.id}-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}`,
+        });
+      }
     }
-    return sortMessagesByTime([...prevMessages, newMsg]);
+
+    return uniqueMessages;
   };
 
   const handleNewMessage = (newMsg) => {
     const normalizedMsg = {
       ...newMsg,
+      senderId: parseInt(newMsg.senderId),
       timestamp: normalizeTimestamp(newMsg.timestamp),
     };
-    setMessages((prev) => updateMessagesWithNew(prev, normalizedMsg));
+
+    // Nếu tin nhắn đã được xử lý hoặc là tin nhắn vừa gửi bởi user, bỏ qua
+    if (
+      processedMessageIds.current.has(normalizedMsg.id) ||
+      recentlySentMessageIds.has(normalizedMsg.id)
+    ) {
+      // Xóa khỏi danh sách tin nhắn vừa gửi nếu phù hợp
+      if (recentlySentMessageIds.has(normalizedMsg.id)) {
+        setRecentlySentMessageIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(normalizedMsg.id);
+          return newSet;
+        });
+      }
+      return;
+    }
+
+    // Đánh dấu là đã xử lý
+    processedMessageIds.current.add(normalizedMsg.id);
+
+    // Cập nhật danh sách tin nhắn
+    setMessages((prev) => {
+      const combinedMessages = [...prev, normalizedMsg];
+      return getUniqueMessages(combinedMessages);
+    });
   };
 
   const fetchMessages = async () => {
@@ -73,29 +126,50 @@ const UserChatPage = () => {
     setError(null);
     try {
       const data = await getPrivateMessages(currentUserId, adminId);
+
+      // Reset processed message ids khi fetch mới
+      processedMessageIds.current.clear();
+
+      // Chuẩn hóa thời gian
       const normalizedMessages = data.map((msg) => ({
         ...msg,
         timestamp: normalizeTimestamp(msg.timestamp),
       }));
-      setMessages(sortMessagesByTime(normalizedMessages));
+
+      // Lưu ID các tin nhắn đã xử lý
+      normalizedMessages.forEach((msg) => {
+        processedMessageIds.current.add(msg.id);
+      });
+
+      // Đặt danh sách tin nhắn độc nhất
+      setMessages(getUniqueMessages(normalizedMessages));
 
       if (data.length === 0) {
         const defaultMessage = {
           senderId: currentUserId,
           receiverId: adminId,
           content: "Welcome! How can I assist you today?",
-          messageType: "TEXT",
         };
         await sendPrivateMessage(defaultMessage);
         const updatedMessages = await getPrivateMessages(
           currentUserId,
           adminId
         );
+
+        // Chuẩn hóa thời gian
         const normalizedUpdatedMessages = updatedMessages.map((msg) => ({
           ...msg,
           timestamp: normalizeTimestamp(msg.timestamp),
         }));
-        setMessages(sortMessagesByTime(normalizedUpdatedMessages));
+
+        // Làm mới danh sách tin nhắn đã xử lý
+        processedMessageIds.current.clear();
+        normalizedUpdatedMessages.forEach((msg) => {
+          processedMessageIds.current.add(msg.id);
+        });
+
+        // Đặt danh sách tin nhắn độc nhất
+        setMessages(getUniqueMessages(normalizedUpdatedMessages));
       }
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -107,30 +181,49 @@ const UserChatPage = () => {
   };
 
   const connectWebSocket = () => {
-    const socket = new SockJS("http://localhost:8080/chat");
-    const client = Stomp.over(socket);
-    const token = localStorage.getItem("token");
-    const headers = {
-      Authorization: token ? `Bearer ${token}` : "",
-      "user-id": currentUserId.toString(),
+    if (!currentUserId || isNaN(currentUserId)) {
+      setError("Invalid user ID. Please log in again.");
+      message.error("Authentication required.");
+      return;
+    }
+
+    const ws = new WebSocket(
+      `ws://localhost:8080/chat?userId=${currentUserId}`
+    );
+
+    ws.onopen = () => {
+      console.log("WebSocket connected successfully for User", currentUserId);
     };
 
-    client.connect(
-      headers,
-      () => {
-        console.log("WebSocket connected successfully for User");
-        client.subscribe(`/queue/private/${currentUserId}`, (msg) => {
-          const newMsg = JSON.parse(msg.body);
-          handleNewMessage(newMsg);
-        });
-      },
-      (err) => {
-        console.error("WebSocket connection error:", err);
-        setError("Failed to connect to WebSocket. Please refresh the page.");
-        message.error("Failed to connect to WebSocket.");
+    ws.onmessage = (event) => {
+      const newMsg = JSON.parse(event.data);
+      if (newMsg.error) {
+        console.error("WebSocket error:", newMsg.error);
+        setError(newMsg.error);
+        ws.close();
+        return;
       }
-    );
-    setStompClient(client);
+      if (newMsg.status === "connected") {
+        console.log("Connected with userId:", newMsg.userId);
+        return;
+      }
+
+      // Xử lý tin nhắn mới
+      handleNewMessage(newMsg);
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      setError("Failed to connect to WebSocket. Please refresh the page.");
+      message.error("Failed to connect to WebSocket.");
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      setError("WebSocket connection closed.");
+    };
+
+    setSocket(ws);
   };
 
   useEffect(() => {
@@ -145,7 +238,7 @@ const UserChatPage = () => {
       connectWebSocket();
     }
     return () => {
-      if (stompClient) stompClient.disconnect();
+      if (socket) socket.close();
     };
   }, [currentUserId]);
 
@@ -156,16 +249,20 @@ const UserChatPage = () => {
       senderId: currentUserId,
       receiverId: adminId,
       content: newMessage,
-      messageType: "TEXT",
     };
 
+    const tempId = `temp-${Date.now()}`;
     const tempMessage = {
       ...messageRequest,
-      id: `temp-${Date.now()}`,
+      id: tempId,
+      uniqueId: `temp-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 9)}`,
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => sortMessagesByTime([...prev, tempMessage]));
+    // Thêm tin nhắn tạm thời vào danh sách
+    setMessages((prev) => getUniqueMessages([...prev, tempMessage]));
     setNewMessage("");
 
     try {
@@ -173,18 +270,28 @@ const UserChatPage = () => {
       const sentMessage = {
         ...response,
         timestamp: normalizeTimestamp(response.timestamp),
+        uniqueId: `${response.id}-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 9)}`,
       };
-      setMessages((prev) =>
-        sortMessagesByTime(
-          prev.map((msg) => (msg.id === tempMessage.id ? sentMessage : msg))
-        )
-      );
+
+      // Đánh dấu tin nhắn đã gửi để tránh lặp lại từ websocket
+      setRecentlySentMessageIds((prev) => new Set(prev).add(sentMessage.id));
+      processedMessageIds.current.add(sentMessage.id);
+
+      // Cập nhật tin nhắn tạm thời thành tin nhắn đã gửi
+      setMessages((prev) => {
+        const updatedMessages = prev.map((msg) =>
+          msg.id === tempId ? sentMessage : msg
+        );
+        return getUniqueMessages(updatedMessages);
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
       message.error("Failed to send message.");
-      setMessages((prev) =>
-        sortMessagesByTime(prev.filter((msg) => msg.id !== tempMessage.id))
-      );
+
+      // Xóa tin nhắn tạm thời nếu gửi thất bại
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
     }
   };
 
@@ -213,9 +320,12 @@ const UserChatPage = () => {
     return (
       <>
         <div className="chat-messages" ref={chatMessagesRef}>
-          {messages.map((msg, index) => (
+          {messages.map((msg) => (
             <div
-              key={msg.id || index}
+              key={
+                msg.uniqueId ||
+                `${msg.id}-${Math.random().toString(36).substring(2, 9)}`
+              }
               className={`chat-message ${
                 msg.senderId === currentUserId ? "sent" : "received"
               }`}
@@ -234,9 +344,7 @@ const UserChatPage = () => {
                   <span>{msg.content}</span>
                 </div>
                 <span className="chat-message-timestamp">
-                  {msg.messageType === "TEXT"
-                    ? timeAgo(normalizeTimestamp(msg.timestamp))
-                    : msg.messageType}
+                  {timeAgo(normalizeTimestamp(msg.timestamp))}
                 </span>
               </div>
               {msg.senderId === currentUserId && (
