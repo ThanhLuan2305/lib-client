@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, List, Avatar, Spin, Button, Input, message } from "antd";
 import { UserOutlined, SendOutlined } from "@ant-design/icons";
-import { getPrivateMessages, sendPrivateMessage } from "../../services/Chat";
-import { getUsersChattingWithAdmin } from "../../services/admin/Chat";
+import {
+  getPrivateMessages,
+  sendPrivateMessage,
+  getUsersChattingWithAdmin,
+} from "../../services/admin/Chat";
 import "../../styles/adminChat.css";
 
 const { Sider, Content } = Layout;

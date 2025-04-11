@@ -1,0 +1,24 @@
+.topic-list {
+	padding: 10px;
+	background: #fff;
+	border-top: 1px solid #e8e8e8;
+}
+
+.topic-list h4 {
+	margin: 10px 0;
+	font-size: 16px;
+	color: #1a1a1a;
+}
+
+.topic-list .ant-list-item {
+	padding: 8px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.topic-list .ant-list-item-meta-title {
+	font-weight: 500;
+}
+
+.topic-list .ant-list-item-meta-description {
+	color: #888;
+}

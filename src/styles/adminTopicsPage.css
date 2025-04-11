@@ -1,0 +1,25 @@
+.admin-topics-page {
+	padding: 24px;
+	background: #fff;
+	min-height: 100vh;
+}
+
+.admin-topics-page h1 {
+	font-size: 24px;
+	margin-bottom: 20px;
+	color: #1a1a1a;
+}
+
+.topic-table .ant-table {
+	border: 1px solid #e8e8e8;
+	border-radius: 4px;
+}
+
+.topic-table .ant-table-thead>tr>th {
+	background: #fafafa;
+	font-weight: 600;
+}
+
+.topic-table .ant-table-tbody>tr:hover>td {
+	background: #f5f5f5;
+}

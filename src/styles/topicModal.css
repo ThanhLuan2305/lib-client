@@ -1,0 +1,15 @@
+.topic-modal .ant-modal-content {
+	border-radius: 4px;
+}
+
+.topic-modal .ant-modal-header {
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.topic-modal .ant-form-item {
+	margin-bottom: 16px;
+}
+
+.topic-modal .ant-form-item-label>label {
+	font-weight: 500;
+}

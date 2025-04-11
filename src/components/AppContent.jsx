@@ -19,6 +19,7 @@ import MaintenanceModePage from "../pages/admin/MaintenanceModePage";
 import ActivityLogPage from "../pages/admin/ActivityLogPage";
 import UserChatPage from "../pages/UserChatPage";
 import AdminChatPage from "../pages/admin/AdminChatPage";
+import AdminTopicPage from "../pages/admin/AdminTopicPage";
 import ProtectedRoute from "./ProtectedRoute";
 import MaintenanceMode from "../pages/MaintenanceMode";
 import MaintenanceGuard from "./MaintenanceGuard";
@@ -144,7 +145,15 @@ const AppContent = ({
               path="/admin/chat"
               element={
                 <ProtectedRoute>
-                  <AdminChatPage /> {/* Thêm route cho AdminChatPage */}
+                  <AdminChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/topics"
+              element={
+                <ProtectedRoute>
+                  <AdminTopicPage />
                 </ProtectedRoute>
               }
             />

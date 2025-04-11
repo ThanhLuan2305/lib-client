@@ -1,10 +1,21 @@
+// src/pages/UserChatPage.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { Layout, Spin, Avatar, Input, Button, message } from "antd";
-import { UserOutlined, SendOutlined } from "@ant-design/icons";
-import { sendPrivateMessage, getPrivateMessages } from "../services/Chat";
+import { Layout, message } from "antd";
+import ChatList from "../components/ChatList";
+import ChatWindow from "../components/ChatWindow";
+import {
+  sendPrivateMessage,
+  getPrivateMessages,
+  sendGroupMessage,
+  getMessagesInTopic,
+  getSubscribedTopics,
+  subscribeToTopic,
+  unsubscribeFromTopic,
+  getAllTopics,
+} from "../services/Chat";
 import "../styles/userChat.css";
 
-const { Content } = Layout;
+const { Sider, Content } = Layout;
 
 const timeAgo = (date) => {
   const now = new Date();
@@ -23,6 +34,8 @@ const timeAgo = (date) => {
 };
 
 const UserChatPage = () => {
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,28 +44,28 @@ const UserChatPage = () => {
   const [recentlySentMessageIds, setRecentlySentMessageIds] = useState(
     new Set()
   );
-  const messagesEndRef = useRef(null);
-  const chatMessagesRef = useRef(null);
-  const processedMessageIds = useRef(new Set()); // Để theo dõi các tin nhắn đã xử lý
+  const [allTopics, setAllTopics] = useState([]);
+
+  const selectedChatRef = useRef(null);
+  const processedMessageIds = useRef(new Set());
 
   const userProfile = JSON.parse(localStorage.getItem("userProfile")) || {};
   const currentUserId = userProfile.id || 0;
   const adminId = 1;
 
-  const normalizeTimestamp = (timestamp) => {
-    if (!timestamp) return null;
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
 
+  const normalizeTimestamp = (timestamp) => {
+    if (!timestamp) return new Date().toISOString();
     if (typeof timestamp === "number") {
-      if (timestamp < 10 ** 12) {
-        timestamp *= 1000;
-      }
+      if (timestamp < 10 ** 12) timestamp *= 1000;
       return new Date(timestamp).toISOString();
     }
-
     if (typeof timestamp === "string") {
       return timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`;
     }
-
     return timestamp.toString();
   };
 
@@ -64,15 +77,16 @@ const UserChatPage = () => {
     });
   };
 
-  // Sửa lại phương thức xử lý loại bỏ tin nhắn trùng lặp
   const getUniqueMessages = (messages) => {
+    if (!Array.isArray(messages)) {
+      console.warn("getUniqueMessages: messages is not an array", messages);
+      return [];
+    }
+
     const uniqueMessages = [];
     const seenIds = new Set();
-
-    // Sắp xếp trước để đảm bảo lấy tin nhắn mới nhất
     const sortedMessages = sortMessagesByTime(messages);
 
-    // Duyệt từ tin nhắn cũ đến mới nhất
     for (const msg of sortedMessages) {
       if (!seenIds.has(msg.id)) {
         seenIds.add(msg.id);
@@ -81,26 +95,25 @@ const UserChatPage = () => {
           uniqueId: `${msg.id}-${Date.now()}-${Math.random()
             .toString(36)
             .substring(2, 9)}`,
+          timeAgo: timeAgo(normalizeTimestamp(msg.timestamp)),
         });
       }
     }
-
     return uniqueMessages;
   };
 
   const handleNewMessage = (newMsg) => {
     const normalizedMsg = {
       ...newMsg,
-      senderId: parseInt(newMsg.senderId),
+      senderId: parseInt(newMsg.senderId) || newMsg.senderId,
       timestamp: normalizeTimestamp(newMsg.timestamp),
+      id: newMsg.id || `temp-${Date.now()}`,
     };
 
-    // Nếu tin nhắn đã được xử lý hoặc là tin nhắn vừa gửi bởi user, bỏ qua
     if (
       processedMessageIds.current.has(normalizedMsg.id) ||
       recentlySentMessageIds.has(normalizedMsg.id)
     ) {
-      // Xóa khỏi danh sách tin nhắn vừa gửi nếu phù hợp
       if (recentlySentMessageIds.has(normalizedMsg.id)) {
         setRecentlySentMessageIds((prev) => {
           const newSet = new Set(prev);
@@ -111,70 +124,207 @@ const UserChatPage = () => {
       return;
     }
 
-    // Đánh dấu là đã xử lý
     processedMessageIds.current.add(normalizedMsg.id);
 
-    // Cập nhật danh sách tin nhắn
-    setMessages((prev) => {
-      const combinedMessages = [...prev, normalizedMsg];
-      return getUniqueMessages(combinedMessages);
+    setChats((prevChats) => {
+      const updatedChats = prevChats.map((chat) => {
+        if (
+          (chat.type === "admin" &&
+            (normalizedMsg.senderId === adminId ||
+              normalizedMsg.receiverId === adminId) &&
+            (normalizedMsg.senderId === currentUserId ||
+              normalizedMsg.receiverId === currentUserId)) ||
+          (chat.type === "group" && normalizedMsg.topic === chat.id)
+        ) {
+          const updatedMessages = [...(chat.messages || []), normalizedMsg];
+          return {
+            ...chat,
+            lastMessage: {
+              content: normalizedMsg.content,
+              timeAgo: timeAgo(normalizedMsg.timestamp),
+              timestamp: normalizedMsg.timestamp,
+            },
+            messages: updatedMessages,
+          };
+        }
+        return chat;
+      });
+      return sortChatsByLastMessage(updatedChats);
+    });
+
+    const selectedChatValue = selectedChatRef.current;
+    if (selectedChatValue) {
+      if (
+        (selectedChatValue.type === "admin" &&
+          (normalizedMsg.senderId === adminId ||
+            normalizedMsg.receiverId === adminId) &&
+          (normalizedMsg.senderId === currentUserId ||
+            normalizedMsg.receiverId === currentUserId)) ||
+        (selectedChatValue.type === "group" &&
+          normalizedMsg.topic === selectedChatValue.id)
+      ) {
+        setMessages((prev) => {
+          const combinedMessages = [...prev, normalizedMsg];
+          return getUniqueMessages(combinedMessages);
+        });
+      }
+    }
+  };
+
+  const sortChatsByLastMessage = (chats) => {
+    return [...chats].sort((a, b) => {
+      const timeA = a.lastMessage
+        ? new Date(normalizeTimestamp(a.lastMessage.timestamp)).getTime()
+        : 0;
+      const timeB = b.lastMessage
+        ? new Date(normalizeTimestamp(b.lastMessage.timestamp)).getTime()
+        : 0;
+      return timeB - timeA;
     });
   };
 
-  const fetchMessages = async () => {
+  const fetchChats = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getPrivateMessages(currentUserId, adminId);
+      // Fetch all topics
+      const allTopics = await getAllTopics();
+      setAllTopics(allTopics);
 
-      // Reset processed message ids khi fetch mới
-      processedMessageIds.current.clear();
+      // Fetch subscribed topics
+      const subscribedTopics = await getSubscribedTopics(currentUserId);
 
-      // Chuẩn hóa thời gian
-      const normalizedMessages = data.map((msg) => ({
+      // Fetch admin messages
+      const adminMessages = await getPrivateMessages(currentUserId, adminId);
+      const normalizedAdminMessages = adminMessages.map((msg) => ({
         ...msg,
         timestamp: normalizeTimestamp(msg.timestamp),
       }));
 
-      // Lưu ID các tin nhắn đã xử lý
-      normalizedMessages.forEach((msg) => {
-        processedMessageIds.current.add(msg.id);
+      // Fetch group chats for subscribed topics
+      const groupChats = await Promise.all(
+        subscribedTopics.map(async (topic) => {
+          const messages = await getMessagesInTopic(topic);
+          const normalizedMessages = messages.map((msg) => ({
+            ...msg,
+            timestamp: normalizeTimestamp(msg.timestamp),
+          }));
+          const sortedMessages = sortMessagesByTime(normalizedMessages);
+          const lastMessage = sortedMessages[sortedMessages.length - 1];
+          return {
+            id: topic,
+            name: topic,
+            type: "group",
+            subscribed: true,
+            lastMessage: lastMessage
+              ? {
+                  content: lastMessage.content,
+                  timeAgo: timeAgo(lastMessage.timestamp),
+                  timestamp: lastMessage.timestamp,
+                }
+              : null,
+            messages: sortedMessages,
+          };
+        })
+      );
+
+      // Create admin chat
+      const adminChat = {
+        id: "admin",
+        name: "Admin",
+        type: "admin",
+        subscribed: true,
+        lastMessage: normalizedAdminMessages.length
+          ? {
+              content:
+                normalizedAdminMessages[normalizedAdminMessages.length - 1]
+                  .content,
+              timeAgo: timeAgo(
+                normalizedAdminMessages[normalizedAdminMessages.length - 1]
+                  .timestamp
+              ),
+              timestamp:
+                normalizedAdminMessages[normalizedAdminMessages.length - 1]
+                  .timestamp,
+            }
+          : null,
+        messages: normalizedAdminMessages,
+      };
+
+      // Combine and sort chats (only subscribed ones)
+      const allChats = [adminChat, ...groupChats];
+      const sortedChats = sortChatsByLastMessage(allChats);
+      setChats(sortedChats);
+
+      if (sortedChats.length > 0 && !selectedChat) {
+        setSelectedChat(sortedChats[0]);
+        setMessages(getUniqueMessages(sortedChats[0].messages || []));
+      }
+
+      processedMessageIds.current.clear();
+      allChats.forEach((chat) => {
+        (chat.messages || []).forEach((msg) => {
+          processedMessageIds.current.add(msg.id);
+        });
       });
 
-      // Đặt danh sách tin nhắn độc nhất
-      setMessages(getUniqueMessages(normalizedMessages));
-
-      if (data.length === 0) {
+      if (adminMessages.length === 0) {
         const defaultMessage = {
           senderId: currentUserId,
           receiverId: adminId,
           content: "Welcome! How can I assist you today?",
         };
         await sendPrivateMessage(defaultMessage);
-        const updatedMessages = await getPrivateMessages(
+        const updatedAdminMessages = await getPrivateMessages(
           currentUserId,
           adminId
         );
-
-        // Chuẩn hóa thời gian
-        const normalizedUpdatedMessages = updatedMessages.map((msg) => ({
+        const normalizedUpdatedMessages = updatedAdminMessages.map((msg) => ({
           ...msg,
           timestamp: normalizeTimestamp(msg.timestamp),
         }));
 
-        // Làm mới danh sách tin nhắn đã xử lý
         processedMessageIds.current.clear();
         normalizedUpdatedMessages.forEach((msg) => {
           processedMessageIds.current.add(msg.id);
         });
 
-        // Đặt danh sách tin nhắn độc nhất
+        const updatedAdminChat = {
+          ...adminChat,
+          lastMessage: normalizedUpdatedMessages.length
+            ? {
+                content:
+                  normalizedUpdatedMessages[
+                    normalizedUpdatedMessages.length - 1
+                  ].content,
+                timeAgo: timeAgo(
+                  normalizedUpdatedMessages[
+                    normalizedUpdatedMessages.length - 1
+                  ].timestamp
+                ),
+                timestamp:
+                  normalizedUpdatedMessages[
+                    normalizedUpdatedMessages.length - 1
+                  ].timestamp,
+              }
+            : null,
+          messages: normalizedUpdatedMessages,
+        };
+
+        setChats((prev) => {
+          const updatedChats = prev.map((chat) =>
+            chat.id === "admin" ? updatedAdminChat : chat
+          );
+          return sortChatsByLastMessage(updatedChats);
+        });
+
+        setSelectedChat(updatedAdminChat);
         setMessages(getUniqueMessages(normalizedUpdatedMessages));
       }
     } catch (err) {
-      console.error("Failed to load messages:", err);
-      setError("Failed to load messages. Please try again later.");
-      message.error("Failed to load messages.");
+      console.error("Failed to load chats:", err);
+      setError("Failed to load chats. Please try again later.");
+      message.error("Failed to load chats.");
     } finally {
       setLoading(false);
     }
@@ -197,6 +347,7 @@ const UserChatPage = () => {
 
     ws.onmessage = (event) => {
       const newMsg = JSON.parse(event.data);
+      console.log("WebSocket message:", newMsg);
       if (newMsg.error) {
         console.error("WebSocket error:", newMsg.error);
         setError(newMsg.error);
@@ -207,8 +358,11 @@ const UserChatPage = () => {
         console.log("Connected with userId:", newMsg.userId);
         return;
       }
+      if (newMsg.status === "subscribed" || newMsg.status === "unsubscribed") {
+        fetchChats();
+        return;
+      }
 
-      // Xử lý tin nhắn mới
       handleNewMessage(newMsg);
     };
 
@@ -227,14 +381,8 @@ const UserChatPage = () => {
   };
 
   useEffect(() => {
-    if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  useEffect(() => {
     if (currentUserId) {
-      fetchMessages();
+      fetchChats();
       connectWebSocket();
     }
     return () => {
@@ -242,55 +390,88 @@ const UserChatPage = () => {
     };
   }, [currentUserId]);
 
+  const handleSelectChat = (chat) => {
+    setSelectedChat(chat);
+    setNewMessage("");
+    setMessages(getUniqueMessages(chat.messages || []));
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const messageRequest = {
-      senderId: currentUserId,
-      receiverId: adminId,
-      content: newMessage,
-    };
-
     const tempId = `temp-${Date.now()}`;
     const tempMessage = {
-      ...messageRequest,
+      senderId: currentUserId,
+      [selectedChat.type === "admin" ? "receiverId" : "topic"]:
+        selectedChat.type === "admin" ? adminId : selectedChat.id,
+      content: newMessage,
       id: tempId,
       uniqueId: `temp-${Date.now()}-${Math.random()
         .toString(36)
         .substring(2, 9)}`,
       timestamp: new Date().toISOString(),
+      timeAgo: timeAgo(new Date().toISOString()),
     };
 
-    // Thêm tin nhắn tạm thời vào danh sách
     setMessages((prev) => getUniqueMessages([...prev, tempMessage]));
     setNewMessage("");
 
     try {
-      const response = await sendPrivateMessage(messageRequest);
+      let response;
+      if (selectedChat.type === "admin") {
+        const messageRequest = {
+          senderId: currentUserId,
+          receiverId: adminId,
+          content: newMessage,
+        };
+        response = await sendPrivateMessage(messageRequest);
+      } else {
+        response = await sendGroupMessage(
+          currentUserId,
+          selectedChat.id,
+          newMessage
+        );
+      }
+
       const sentMessage = {
         ...response,
         timestamp: normalizeTimestamp(response.timestamp),
         uniqueId: `${response.id}-${Date.now()}-${Math.random()
           .toString(36)
           .substring(2, 9)}`,
+        timeAgo: timeAgo(normalizeTimestamp(response.timestamp)),
       };
 
-      // Đánh dấu tin nhắn đã gửi để tránh lặp lại từ websocket
       setRecentlySentMessageIds((prev) => new Set(prev).add(sentMessage.id));
       processedMessageIds.current.add(sentMessage.id);
 
-      // Cập nhật tin nhắn tạm thời thành tin nhắn đã gửi
       setMessages((prev) => {
         const updatedMessages = prev.map((msg) =>
           msg.id === tempId ? sentMessage : msg
         );
         return getUniqueMessages(updatedMessages);
       });
+
+      setChats((prevChats) => {
+        const updatedChats = prevChats.map((chat) => {
+          if (chat.id === selectedChat.id) {
+            return {
+              ...chat,
+              lastMessage: {
+                content: sentMessage.content,
+                timeAgo: sentMessage.timeAgo,
+                timestamp: sentMessage.timestamp,
+              },
+              messages: [...(chat.messages || []), sentMessage],
+            };
+          }
+          return chat;
+        });
+        return sortChatsByLastMessage(updatedChats);
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
       message.error("Failed to send message.");
-
-      // Xóa tin nhắn tạm thời nếu gửi thất bại
       setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
     }
   };
@@ -300,92 +481,74 @@ const UserChatPage = () => {
   };
 
   const handleRetry = () => {
-    fetchMessages();
+    fetchChats();
   };
 
-  const renderChatContent = () => {
-    if (loading) return <Spin className="chat-loading" />;
-
-    if (error) {
-      return (
-        <div className="chat-empty">
-          <p className="error-text">{error}</p>
-          <Button type="primary" onClick={handleRetry} className="retry-btn">
-            Retry
-          </Button>
-        </div>
-      );
+  const handleSubscribe = async (topic) => {
+    try {
+      await subscribeToTopic(topic);
+      message.success(`Subscribed to ${topic}`);
+      fetchChats(); // Refresh chats to include new subscription
+    } catch (err) {
+      message.error(`Failed to subscribe to ${topic}`);
     }
+  };
 
-    return (
-      <>
-        <div className="chat-messages" ref={chatMessagesRef}>
-          {messages.map((msg) => (
-            <div
-              key={
-                msg.uniqueId ||
-                `${msg.id}-${Math.random().toString(36).substring(2, 9)}`
-              }
-              className={`chat-message ${
-                msg.senderId === currentUserId ? "sent" : "received"
-              }`}
-            >
-              {msg.senderId !== currentUserId && (
-                <Avatar
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: "#f56a00", marginRight: "8px" }}
-                />
-              )}
-              <div className="chat-message-content">
-                {msg.senderId !== currentUserId && (
-                  <span className="chat-message-sender">Admin</span>
-                )}
-                <div className="message-bubble">
-                  <span>{msg.content}</span>
-                </div>
-                <span className="chat-message-timestamp">
-                  {timeAgo(normalizeTimestamp(msg.timestamp))}
-                </span>
-              </div>
-              {msg.senderId === currentUserId && (
-                <Avatar
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: "#1890ff", marginLeft: "8px" }}
-                />
-              )}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-        <div className="chat-input">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="message-input"
-            suffix={
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-              />
-            }
-          />
-        </div>
-      </>
-    );
+  const handleUnsubscribe = async (topic) => {
+    try {
+      await unsubscribeFromTopic(topic);
+      message.success(`Unsubscribed from ${topic}`);
+      if (selectedChat?.id === topic) {
+        setSelectedChat(null);
+        setMessages([]);
+      }
+      fetchChats(); // Refresh chats to remove unsubscribed topic
+    } catch (err) {
+      message.error(`Failed to unsubscribe from ${topic}`);
+    }
   };
 
   return (
     <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
-      <Content className="chat-content">
+      <Sider width={300} style={{ background: "#fff", padding: "10px" }}>
         <div className="chat-header">
-          <h3>Chat with Admin</h3>
+          <h3>Chats</h3>
         </div>
-        <div className="chat-container">{renderChatContent()}</div>
-      </Content>
+        <ChatList
+          chats={chats}
+          allTopics={allTopics}
+          selectedChat={selectedChat}
+          onSelectChat={handleSelectChat}
+          onSubscribe={handleSubscribe}
+          onUnsubscribe={handleUnsubscribe}
+        />
+      </Sider>
+      <Layout>
+        <Content className="chat-content">
+          {selectedChat ? (
+            <>
+              <div className="chat-header">
+                <h3>{selectedChat.name}</h3>
+              </div>
+              <ChatWindow
+                messages={messages}
+                loading={loading}
+                error={error}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                onSendMessage={handleSendMessage}
+                onKeyPress={handleKeyPress}
+                onRetry={handleRetry}
+                currentUserId={currentUserId}
+              />
+            </>
+          ) : (
+            <div className="chat-empty">
+              <p>Select a chat to start messaging</p>
+            </div>
+          )}
+        </Content>
+      </Layout>
     </Layout>
   );
 };

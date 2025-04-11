@@ -7,6 +7,7 @@ import {
   HistoryOutlined,
   SettingOutlined,
   MessageOutlined,
+  CommentOutlined,
 } from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
 import "../styles/adminSidebar.css";
@@ -30,6 +31,9 @@ const AdminSidebar = () => {
         </Menu.Item>
         <Menu.Item key="manage-book" icon={<BookOutlined />}>
           <NavLink to="/admin/books">Manage Book</NavLink>
+        </Menu.Item>
+        <Menu.Item key="manage-topic" icon={<CommentOutlined />}>
+          <NavLink to="/admin/topics">Manage Topic</NavLink>
         </Menu.Item>
         <Menu.Item key="activity-log" icon={<HistoryOutlined />}>
           <NavLink to="/admin/activity-log">Activity Log</NavLink>
